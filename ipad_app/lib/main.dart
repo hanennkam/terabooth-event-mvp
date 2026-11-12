@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'booth_controller.dart';
 import 'screens/capture_screen.dart';
-import 'screens/print_screen.dart';
-import 'screens/review_screen.dart';
+import 'screens/result_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/bridge_client.dart';
 import 'services/bridge_token_store.dart';
@@ -89,12 +88,11 @@ class _TeraboothAppState extends State<TeraboothApp>
       case BoothPhase.capturing:
         return CaptureScreen(controller: controller);
       case BoothPhase.review:
-        return ReviewScreen(controller: controller);
       case BoothPhase.uploading:
       case BoothPhase.printing:
       case BoothPhase.done:
       case BoothPhase.error:
-        return PrintScreen(controller: controller);
+        return AutoResultScreen(controller: controller);
     }
   }
 

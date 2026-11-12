@@ -194,3 +194,36 @@ def test_delivery_db_expiry_is_rejected_even_with_future_hmac(tmp_path, three_im
         conn.commit(); conn.close()
         assert client.get(f"/d/{token}").status_code == 404
         assert client.get(f"/d/{token}/gif").status_code == 404
+
+
+def test_preview_job_defers_print_and_reprint_uses_selected_copies(tmp_path, three_images):
+    import time
+
+    s = settings(tmp_path)
+    with TestClient(create_app(s)) as client:
+        meta = metadata(three_images)
+        meta["print_now"] = False
+        files = [("image_" + str(i), (f"{i}.jpg", data, "image/jpeg"))
+                 for i, data in enumerate(three_images)]
+        response = client.post(
+            "/v1/print-jobs", data={"metadata": json.dumps(meta)}, files=files,
+            headers={"Idempotency-Key": "preview-1"},
+        )
+        assert response.status_code == 202, response.text
+        job_id = response.json()["job_id"]
+        for _ in range(50):
+            job = client.get(f"/v1/print-jobs/{job_id}").json()
+            if job["state"] in {"completed", "failed", "unknown"}:
+                break
+            time.sleep(0.05)
+        assert job["state"] == "completed"
+        assert job["completion"] == "preview"
+        assert job["print_now"] is False
+
+        reprint = client.post(
+            f"/v1/print-jobs/{job_id}/reprint?copies=2",
+            headers={"Idempotency-Key": "print-2"},
+        )
+        assert reprint.status_code == 202, reprint.text
+        assert reprint.json()["copies"] == 2
+        assert reprint.json()["print_now"] is True

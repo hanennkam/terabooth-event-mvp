@@ -1245,6 +1245,7 @@ class BoothController extends ChangeNotifier {
         crops: custom != null ? const [] : crops.values.toList(),
         branding: uploadBranding,
         brandingLogo: brandingLogo,
+        printNow: false,
       );
       await _createSubmittedJob(job!);
       try {
@@ -1324,17 +1325,13 @@ class BoothController extends ChangeNotifier {
     }
   }
 
-  Future<void> reprint() async {
+  Future<void> reprint({int copies = 1}) async {
     if (phase != BoothPhase.done) return;
     final current = job;
     if (current == null) return;
-    compositionBytes = null;
-    compositionError = null;
-    gifBytes = null;
-    gifLoading = false;
-    gifError = null;
+    if (copies < 1 || copies > 2) return;
     try {
-      job = await bridge.reprint(current.id);
+      job = await bridge.reprint(current.id, copies: copies);
       phase = BoothPhase.printing;
       notifyListeners();
       await _poll();

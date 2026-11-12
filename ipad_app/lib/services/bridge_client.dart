@@ -96,6 +96,8 @@ class BridgeClient {
     List<CropDecision> crops = const [],
     EventBranding? branding,
     Uint8List? brandingLogo,
+    bool printNow = true,
+    int copies = 1,
   }) {
     final expected = template?.slots.length ?? 3;
     final extraComposed = template?.id == 'precomposed_4x6_v1';
@@ -116,7 +118,8 @@ class BridgeClient {
         if (template != null) 'template_version': template.version,
         if (crops.isNotEmpty)
           'crops': [for (final crop in crops) crop.toJson()],
-        'copies': 1,
+        'copies': copies,
+        'print_now': printNow,
         'paper': '4x6',
         'cut': '2x6',
         'event_text': {'title': title, 'date': date},
@@ -294,10 +297,10 @@ class BridgeClient {
     });
   }
 
-  Future<PrintJob> reprint(String jobId) {
+  Future<PrintJob> reprint(String jobId, {int copies = 1}) {
     return _request('REPRINT', reprintTimeout, () async {
       final r = await client.post(
-        _uri('/v1/print-jobs/$jobId/reprint'),
+        _uri('/v1/print-jobs/$jobId/reprint?copies=$copies'),
         headers: {
           ..._headers,
           'Idempotency-Key':
@@ -322,6 +325,7 @@ class BridgeClient {
     List<CropDecision> crops = const [],
     EventBranding? branding,
     Uint8List? brandingLogo,
+    bool printNow = true,
   }) {
     final templatePart = template == null
         ? 'strip_2x6_3up_v1|1'
@@ -332,7 +336,7 @@ class BridgeClient {
     ].join(',');
     final h = sha256.convert(
       utf8.encode(
-        '$sessionId|${images.map((e) => sha256.convert(e.bytes)).join("|")}|$templatePart|$cropPart|1',
+        '$sessionId|${images.map((e) => sha256.convert(e.bytes)).join("|")}|$templatePart|$cropPart|1|${printNow ? 1 : 0}',
       ),
     );
     return h.toString();

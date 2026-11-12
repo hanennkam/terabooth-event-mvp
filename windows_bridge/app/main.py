@@ -88,6 +88,7 @@ class PrintMetadata(BaseModel):
     crops: list[CropMeta] = Field(default_factory=list)
     branding: BrandingMeta | None = None
     copies: int = 1
+    print_now: bool = True
     paper: str = "4x6"
     cut: str = "2x6"
     event_text: EventText
@@ -183,6 +184,7 @@ def job_json(job: dict[str, Any], request: Request, settings: Settings) -> dict[
         "event_id": job["event_id"],
         "template": job["template"],
         "copies": job["copies"],
+        "print_now": bool(job.get("print_now", 1)),
         "event_title": job.get("event_title", "TERABOOTH"),
         "event_date": job.get("event_date", ""),
         "created_at": job["created_at"],
@@ -438,6 +440,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             db.update_job(settings.db_path, job_id, state="queued")
             persist_guest_manifest(db.get_job(settings.db_path, job_id), settings)
             db.add_attempt(settings.db_path, job_id, "queued", str(artefact))
+            if not job.get("print_now", 1):
+                db.update_job(settings.db_path, job_id, state="completed",
+                              completion="preview", printer="none",
+                              completed_at=db.now_iso(), error=None)
+                db.add_attempt(settings.db_path, job_id, "preview_ready",
+                               "composition ready; print deferred")
+                return
             handle = printer.submit(job_id, artefact, int(job["copies"]))
             db.update_job(settings.db_path, job_id, state="printing",
                           attempts=int(job["attempts"]) + 1, printer=handle.transport)
@@ -789,6 +798,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         job = db.create_job(
             settings.db_path, session_id=session["id"], event_id=meta.event_id,
             idempotency_key=key, template=meta.template, copies=meta.copies,
+            print_now=meta.print_now,
             delivery_token=token, reprint_of=None, job_id=job_id,
             event_title=meta.event_text.title, event_date=meta.event_text.date,
             template_version=version,
@@ -881,8 +891,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return job_json(fresh, request, settings)
 
     @app.post("/v1/print-jobs/{job_id}/reprint")
-    async def reprint(job_id: str, request: Request, _: None = Depends(auth),
+    async def reprint(job_id: str, request: Request, copies: int = 1, _: None = Depends(auth),
                       idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> Response:
+        if copies < 1 or copies > 2:
+            raise HTTPException(422, "copies must be 1 or 2")
         original = db.get_job(settings.db_path, job_id)
         if not original:
             raise HTTPException(404, "job not found")
@@ -902,7 +914,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         token = make_access_token()
         job = db.create_job(
             settings.db_path, session_id=original["session_id"], event_id=original["event_id"],
-            idempotency_key=key, template=original["template"], copies=original["copies"],
+            idempotency_key=key, template=original["template"], copies=copies,
+            print_now=True,
             delivery_token=token, reprint_of=job_id, job_id=new_job_id,
             event_title=original.get("event_title", "TERABOOTH"),
             event_date=original.get("event_date", ""),

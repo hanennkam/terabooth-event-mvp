@@ -122,6 +122,8 @@ def init_db(path: Path) -> None:
             conn.execute("ALTER TABLE jobs ADD COLUMN gif_updated_at TEXT")
         if "gif_attempts" not in cols:
             conn.execute("ALTER TABLE jobs ADD COLUMN gif_attempts INTEGER NOT NULL DEFAULT 0")
+        if "print_now" not in cols:
+            conn.execute("ALTER TABLE jobs ADD COLUMN print_now INTEGER NOT NULL DEFAULT 1")
 
 
 @contextmanager
@@ -151,6 +153,7 @@ def create_session(path: Path, event_id: str) -> dict[str, Any]:
 
 def create_job(path: Path, *, session_id: str, event_id: str, idempotency_key: str,
                template: str, copies: int, delivery_token: str, reprint_of: str | None,
+               print_now: bool = True,
                job_id: str | None = None, event_title: str = "TERABOOTH",
                event_date: str = "", template_version: int = 1,
                crops_json: str | None = None, branding_json: str | None = None) -> dict[str, Any]:
@@ -159,11 +162,11 @@ def create_job(path: Path, *, session_id: str, event_id: str, idempotency_key: s
     with db(path) as conn:
         conn.execute(
             """INSERT INTO jobs(id,session_id,event_id,idempotency_key,state,completion,
-               attempts,printer,template,copies,event_title,event_date,error,delivery_token,created_at,updated_at,reprint_of,template_version,crops_json,branding_json)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               attempts,printer,template,copies,event_title,event_date,error,delivery_token,created_at,updated_at,reprint_of,template_version,crops_json,branding_json,print_now)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (jid, session_id, event_id, idempotency_key, "received", "unknown",
              0, None, template, copies, event_title, event_date, None, delivery_token, ts, ts, reprint_of,
-             template_version, crops_json, branding_json),
+             template_version, crops_json, branding_json, 1 if print_now else 0),
         )
     return get_job(path, jid)  # type: ignore[return-value]
 

@@ -1885,3 +1885,20 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Known limits: no font picker, placeholder editor samples, 4 slots, local
   composition. Native camera licence and print calibration remain blocked.
 - Report: `docs/technical/PHASE_8A_EVENT_WELCOME_CANVA_TEMPLATE.md`.
+
+
+---
+
+## Phase 8A UX simplification (2026-11-13)
+
+**PASS software; no physical camera/print.**
+
+- Removed Review/Print screens, approval, Retake All and QR guest UI/dependency.
+- Capture auto-advances to Result with GIF, AirDrop and Print only.
+- Native share sheet via share_plus; dedicated GIF preview/share.
+- Print uses preview job (`print_now=false`) then existing reprint with 1/2 copies;
+  no automatic print.
+- 152 Flutter and 79 Bridge tests passed; iOS simulator build succeeded.
+- QR backend/delivery data retained but isolated. Physical validation remains
+  blocked/unauthorized.
+- Report: `docs/technical/PHASE_8A_UX_SIMPLIFICATION.md`.

@@ -2,14 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:terabooth_ipad/booth_controller.dart';
 import 'package:terabooth_ipad/models.dart';
-import 'package:terabooth_ipad/screens/print_screen.dart';
 import 'package:terabooth_ipad/services/bridge_client.dart';
 import 'package:terabooth_ipad/services/storage_service.dart';
 
@@ -224,10 +222,15 @@ void main() {
     addTearDown(() async {
       // A background GIF callback may finish after the test body; cleanup must
       // be idempotent rather than failing on an already-removed temp dir.
-      try {
-        await temp.delete(recursive: true);
-      } on PathNotFoundException {
-        // Another async teardown already removed it.
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          await temp.delete(recursive: true);
+          break;
+        } on PathNotFoundException {
+          break;
+        } on FileSystemException {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
       }
     });
     final gif = gifFixture;
@@ -388,67 +391,4 @@ void main() {
     expect(restored.eventTitle, 'New Event');
     expect(restored.eventDate, '15 Nov 2026');
   });
-
-  testWidgets(
-    'print screen shows delivery URL, copy action and composition action',
-    (tester) async {
-      tester.view.physicalSize = const Size(1024, 1366);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-      final controller = BoothController(
-        camera: TestCamera(bytes: jpeg),
-        storage: StorageService(rootOverride: Directory('/tmp')),
-        bridge: BridgeClient(
-          baseUrl: 'http://x',
-          client: bridgeMock(posts: []),
-        ),
-        countdownDelay: Duration.zero,
-      );
-      addTearDown(controller.dispose);
-      controller.phase = BoothPhase.done;
-      controller.job = const PrintJob(
-        id: 'job_1',
-        state: 'completed',
-        completion: 'confirmed',
-        attempts: 1,
-        gifState: 'ready',
-        deliveryUrl: 'http://192.168.8.50:8787/d/token',
-      );
-      controller.compositionBytes = jpeg;
-      controller.gifBytes = gifFixture;
-
-      String? copied;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-            if (call.method == 'Clipboard.setData') {
-              copied = (call.arguments as Map)['text'] as String?;
-            }
-            return null;
-          });
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(SystemChannels.platform, null);
-      });
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: PrintScreen(controller: controller)),
-        ),
-      );
-      await tester.pump();
-      expect(find.text('http://192.168.8.50:8787/d/token'), findsOneWidget);
-      expect(find.byTooltip('Copy delivery link'), findsOneWidget);
-      expect(find.text('View final composition'), findsOneWidget);
-      expect(find.text('View animated GIF'), findsOneWidget);
-
-      await tester.ensureVisible(find.byTooltip('Copy delivery link'));
-      await tester.pump();
-      await tester.tap(find.byTooltip('Copy delivery link'));
-      await tester.pump();
-      expect(copied, 'http://192.168.8.50:8787/d/token');
-    },
-  );
 }

@@ -9,7 +9,6 @@ import 'package:http/testing.dart';
 import 'package:terabooth_ipad/booth_controller.dart';
 import 'package:terabooth_ipad/models.dart';
 import 'package:terabooth_ipad/screens/capture_screen.dart';
-import 'package:terabooth_ipad/screens/print_screen.dart';
 import 'package:terabooth_ipad/screens/welcome_screen.dart';
 import 'package:terabooth_ipad/services/bridge_client.dart';
 import 'package:terabooth_ipad/services/storage_service.dart';
@@ -214,67 +213,5 @@ void main() {
     expect(find.textContaining('SIMULATED CAMERA'), findsAtLeastNWidgets(1));
     expect(find.text('SIMULATED CAMERA READY'), findsOneWidget);
     expect(find.text('1/3 captured'), findsOneWidget);
-  });
-
-  testWidgets('mock printer completion never claims a physical print', (
-    tester,
-  ) async {
-    useLandscape(tester);
-    final controller = controllerFor(Directory('/tmp'));
-    addTearDown(controller.dispose);
-    controller.phase = BoothPhase.done;
-    controller.job = const PrintJob(
-      id: 'job_mock',
-      state: 'completed',
-      completion: 'confirmed',
-      attempts: 1,
-      printerMode: 'mock',
-      deliveryUrl: 'http://192.168.8.50:8787/d/token',
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: PrintScreen(controller: controller)),
-      ),
-    );
-    await tester.pump();
-    expect(
-      find.text('Mock print complete — no physical print'),
-      findsOneWidget,
-    );
-    expect(find.text('Printed — take your strip'), findsNothing);
-    expect(find.text('MOCK PRINTER'), findsOneWidget);
-  });
-
-  testWidgets('unknown print status is terminal and warns before reprint', (
-    tester,
-  ) async {
-    useLandscape(tester);
-    final temp = Directory('/tmp');
-    final controller = controllerFor(temp);
-    addTearDown(controller.dispose);
-    controller.phase = BoothPhase.done;
-    controller.job = const PrintJob(
-      id: 'job_unknown',
-      state: 'unknown',
-      completion: 'unknown',
-      attempts: 1,
-      deliveryUrl: 'http://192.168.8.50:8787/d/token',
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: PrintScreen(controller: controller)),
-      ),
-    );
-    await tester.pump();
-
-    expect(find.text('Print status unknown'), findsOneWidget);
-    expect(find.text('Retry print (new job)'), findsOneWidget);
-    expect(
-      find.textContaining('Do not resubmit automatically'),
-      findsOneWidget,
-    );
-    expect(find.text('job_unknown'), findsOneWidget);
   });
 }

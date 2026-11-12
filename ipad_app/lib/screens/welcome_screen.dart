@@ -234,7 +234,10 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(width: TbSpace.md),
               Expanded(
-                child: TbMetric(label: 'Delivery', value: 'Local QR · 24 h'),
+                child: TbMetric(
+                  label: 'Guest sharing',
+                  value: 'GIF · AirDrop · Print',
+                ),
               ),
             ],
           ),
