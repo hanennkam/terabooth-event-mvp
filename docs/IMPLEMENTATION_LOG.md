@@ -1803,3 +1803,20 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Shortest path: install/configure HFP 4x6 folder, adapt/test, one authorized
   calibration.
 - Report: `docs/technical/PHASE_6H_DNP_VENDOR_MECHANISM_DISCOVERY.md`.
+
+
+---
+
+## Phase 6I — Native Windows driver printing (2026-11-13)
+
+**PASS driver-managed implementation/preflight; physical NOT TESTED.**
+
+- Added WindowsDriverPrinter/print_driver.ps1 using default PR (4x6) 413x615
+  portrait, no PaperSize/orientation/margins/private feature overrides; uniform
+  fit, PrinterSettings.Copies; config sidecar.
+- Preflight driver_managed.ready=true, physical_ready=false; default page PR4x6.
+- Targeted 22 tests; previous full 77/74 evidence reused; no print/spooler/queue/
+  driver/customer/camera changes.
+- Shortest path: one authorized driver-mode calibration, verify uncut 4x6, restore
+  mock. HFP optional.
+- Report: `docs/technical/PHASE_6I_NATIVE_WINDOWS_DRIVER_PRINTING.md`.
