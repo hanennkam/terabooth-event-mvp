@@ -110,6 +110,7 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 6D-5 DNP pipeline readiness: `docs/technical/PHASE_6D_5_DNP_PRINT_PIPELINE_READINESS.md`
 - Phase 6D-6 Windows DNP deployment: `docs/technical/PHASE_6D_6_WINDOWS_DNP_DEPLOYMENT.md`
 - Phase 6E physical DNP calibration: `docs/technical/PHASE_6E_PHYSICAL_CALIBRATION_AND_PRINT_VERIFICATION.md`
+- Phase 6F DNP job-level print control: `docs/technical/PHASE_6F_DNP_JOB_LEVEL_PRINT_CONTROL.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`

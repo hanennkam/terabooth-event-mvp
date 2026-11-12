@@ -322,3 +322,76 @@ def test_spooler_submit_uses_no_subprocess_when_ready_gate_fails(tmp_path, monke
     except RuntimeError as exc:
         assert "DNP print blocked" in str(exc)
     assert called["run"] is False
+
+
+def test_xps_backend_uses_explicit_job_ticket_and_4x6_page():
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parent.parent / "scripts" / "print_xps.ps1"
+    text = script.read_text(encoding="utf-8")
+    assert "XpsDocumentWriter" in text
+    assert "FixedPage" in text
+    assert "$page.Width = 384" in text
+    assert "$page.Height = 576" in text
+    assert "PR_4x6" in text
+    assert "CUT_STANDARD" in text
+    assert "Write($page, $ticket)" in text
+    assert "CUT_2INCH" not in text
+    legacy = (Path(__file__).resolve().parent.parent / "scripts" / "print_image.ps1").read_text(encoding="utf-8")
+    assert "print_xps.ps1" in legacy
+
+
+def test_adapter_invokes_xps_backend_with_job_config_path(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app import printer as printer_module
+    from app.printer import WindowsSpoolerPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="spooler", printer_name="DS-RX1",
+    )
+    s.jobs_dir.mkdir(parents=True, exist_ok=True)
+    artefact = tmp_path / "artefact.jpg"
+    artefact.write_bytes(b"x")
+    monkeypatch.setattr(
+        printer_module, "printer_preflight",
+        lambda _s: {
+            "available": True, "ready": True, "blockers": [],
+            "job_level": {"available": True},
+        },
+    )
+    seen = {}
+    def fake_run(cmd, **kwargs):
+        seen["cmd"] = cmd
+        return SimpleNamespace(returncode=0, stdout='{"mechanism":"xps"}', stderr="")
+    monkeypatch.setattr(printer_module.subprocess, "run", fake_run)
+    handle = WindowsSpoolerPrinter(s).submit("job_xps", artefact, 1)
+    assert handle.transport == "spooler"
+    assert any("print_xps.ps1" in str(part) for part in seen["cmd"])
+    assert "-Sta" in seen["cmd"]
+    assert "-ConfigOut" in seen["cmd"]
+    assert any("print_job_config.json" in str(part) for part in seen["cmd"])
+
+
+def test_preflight_requires_xps_job_level(tmp_path, monkeypatch):
+    from app import printer as printer_module
+    from app.printer import WindowsSpoolerPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="spooler", printer_name="DS-RX1",
+    )
+    artefact = tmp_path / "artefact.jpg"
+    artefact.write_bytes(b"x")
+    monkeypatch.setattr(
+        printer_module, "printer_preflight",
+        lambda _s: {
+            "available": True, "ready": True, "blockers": [],
+            "job_level": {"available": False},
+        },
+    )
+    try:
+        WindowsSpoolerPrinter(s).submit("job", artefact, 1)
+        assert False
+    except RuntimeError as exc:
+        assert "job-level PrintTicket backend unavailable" in str(exc)

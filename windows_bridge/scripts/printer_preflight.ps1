@@ -63,6 +63,8 @@ function Ticket-Object($label, $ticket) {
 
 try {
   Add-Type -AssemblyName System.Printing
+  $xpsAvailable = $true
+  try { Add-Type -AssemblyName ReachFramework } catch { $xpsAvailable = $false }
   $server = New-Object System.Printing.LocalPrintServer
   $queue = $server.GetPrintQueue($QueueName)
   $p = Get-Printer -Name $QueueName
@@ -89,9 +91,13 @@ try {
   if ([string]$machine.cut -ne "ns0000:CUT_STANDARD") { $blockers += "machine_cut_not_standard" }
   if ($capMedia -notcontains "ns0000:PR_4x6") { $blockers += "capability_missing_PR_4x6" }
   if ($capCut -notcontains "ns0000:CUT_STANDARD") { $blockers += "capability_missing_CUT_STANDARD" }
+  if (-not $xpsAvailable) { $blockers += "xps_printticket_unavailable" }
+  $configurationReady = ($blockers.Count -eq 0)
   [pscustomobject]@{
     available = $true
-    ready = ($blockers.Count -eq 0)
+    ready = $configurationReady
+    physical_ready = $false
+    configuration_ready = $configurationReady
     queue_exists = $true
     queue_name = [string]$p.Name
     driver_name = [string]$p.DriverName
@@ -122,8 +128,15 @@ try {
       cut = "CUT_STANDARD"
     }
     job_level = [pscustomobject]@{
-      available = $false
-      reason = "No job submitted; effective per-job vendor ticket cannot be inspected without printing."
+      available = [bool]$xpsAvailable
+      mechanism = "XpsDocumentWriter + explicit per-user PrintTicket"
+      requested_media = "PR_4x6"
+      requested_orientation = "Portrait"
+      requested_resolution = "300x300"
+      requested_cut = "CUT_STANDARD"
+      effective_settings_verified = $false
+      physical_calibrated = $false
+      reason = "No job submitted; effective per-job settings remain unverified until physical calibration."
     }
     blockers = @($blockers)
     query_error = ""
@@ -132,6 +145,8 @@ try {
   [pscustomobject]@{
     available = $false
     ready = $false
+    physical_ready = $false
+    configuration_ready = $false
     queue_exists = $false
     queue_name = $QueueName
     driver_name = ""

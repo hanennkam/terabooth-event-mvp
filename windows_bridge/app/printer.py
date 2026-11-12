@@ -110,7 +110,7 @@ class WindowsSpoolerPrinter:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.script = Path(__file__).resolve().parent.parent / "scripts" / "print_image.ps1"
+        self.script = Path(__file__).resolve().parent.parent / "scripts" / "print_xps.ps1"
 
     def submit(self, job_id: str, artefact: Path, copies: int) -> PrintHandle:
         if not self.script.exists():
@@ -126,12 +126,18 @@ class WindowsSpoolerPrinter:
             raise RuntimeError(
                 "DNP print blocked: " + ", ".join(str(b) for b in blockers)
             )
+        job_level = preflight.get("job_level") or {}
+        if job_level.get("available") is not True:
+            raise RuntimeError("DNP print blocked: job-level PrintTicket backend unavailable")
+        config_out = self.settings.jobs_dir / job_id / "print_job_config.json"
+        config_out.parent.mkdir(parents=True, exist_ok=True)
         cmd = [
-            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "powershell", "-NoProfile", "-Sta", "-ExecutionPolicy", "Bypass",
             "-File", str(self.script),
             "-ImagePath", str(artefact),
             "-PrinterName", self.settings.printer_name,
             "-Copies", str(copies),
+            "-ConfigOut", str(config_out),
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if proc.returncode != 0:

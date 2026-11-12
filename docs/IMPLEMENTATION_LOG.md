@@ -1754,3 +1754,21 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - 69 Bridge tests; job-level DNP cut remains unresolved; no further print
   authorized.
 - Report: `docs/technical/PHASE_6E_PHYSICAL_CALIBRATION_AND_PRINT_VERIFICATION.md`.
+
+
+---
+
+## Phase 6F — DNP job-level XPS control (2026-11-13)
+
+**PASS source/tests/preflight; physical NOT TESTED; Mock active.**
+
+- Replaced PrintDocument backend with XpsDocumentWriter + explicit per-user
+  PrintTicket, 4x6 portrait FixedPage, Uniform scaling, PR_4x6/CUT_STANDARD.
+- Adapter gates on preflight ready and job_level.available; writes
+  print_job_config.json; status remains unknown after spooler acceptance.
+- Preflight now reports machine/user/capabilities/job-level; physical_ready=false.
+- Deployed phase6f_xps.zip; Mac/Windows tests 72 pass; Windows preflight
+  configuration_ready=true, physical_ready=false, queue 0, mock.
+- No print/spooler/queue/customer/camera changes. Physical calibration awaits
+  explicit authorization.
+- Report: `docs/technical/PHASE_6F_DNP_JOB_LEVEL_PRINT_CONTROL.md`.
