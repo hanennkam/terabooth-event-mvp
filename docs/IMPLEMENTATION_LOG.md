@@ -1836,3 +1836,18 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Next: production licence or provisionable demo wildcard, then one real EOS
   capture -> Bridge -> QR test.
 - Report: `docs/technical/PHASE_7A_FIRST_RUNTIME_INTEGRATION.md`.
+
+
+---
+
+## Phase 7B — Cascable production-bundle evaluation (2026-11-13)
+
+**BLOCKED — demo licence invalid for production Bundle ID; no camera/print.**
+
+- Simulator-only build with production Bundle ID + demo licence logged
+  CASCABLE_DEMO_LICENSE_RESULT=2 (InvalidLicense).
+- Minimum requirement: CascableCore 18.0.2 licence for
+  com.terabooth.teraboothIpad, production signing, CASCABLE_LICENSE path,
+  USE_NATIVE_CAMERA=true. No code/config bypass.
+- No source/build-default/iPad/camera/print changes; prior evidence reused.
+- Report: `docs/technical/PHASE_7B_CASCABLE_PRODUCTION_BUNDLE_EVALUATION.md`.
