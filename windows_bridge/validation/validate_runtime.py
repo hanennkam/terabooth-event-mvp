@@ -1,6 +1,8 @@
 """Runtime-only import and filesystem smoke checks. No bridge/startup."""
 from __future__ import annotations
-import os, sqlite3, tempfile, time
+import os
+import sqlite3
+import tempfile
 from pathlib import Path
 
 with tempfile.TemporaryDirectory(prefix="terabooth-runtime-") as raw:
@@ -11,21 +13,35 @@ with tempfile.TemporaryDirectory(prefix="terabooth-runtime-") as raw:
     import qrcode
     assert fastapi.__version__ and uvicorn.__version__
     image = Image.new("RGB", (64, 64), "white")
-    image_path = root / "café 照片.jpg"
-    image.save(image_path, "JPEG")
+    try:
+        image_path = root / "café 照片.jpg"
+        image.save(image_path, "JPEG")
+    finally:
+        image.close()
     with Image.open(image_path) as opened:
         assert opened.size == (64, 64)
     qr = qrcode.make("http://192.168.8.50:8787/d/test")
-    qr_path = root / "qr.png"
-    qr.save(qr_path)
-    assert qr_path.stat().st_size > 0
+    try:
+        qr_path = root / "qr.png"
+        qr.save(qr_path)
+        assert qr_path.stat().st_size > 0
+    finally:
+        qr.close()
     db_path = root / "bridge.db"
-    with sqlite3.connect(db_path) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("CREATE TABLE IF NOT EXISTS smoke (id INTEGER)")
-        conn.execute("INSERT INTO smoke VALUES (1)")
-        conn.commit()
-    assert (root / "bridge.db-wal").exists() or (root / "bridge.db-shm").exists()
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    try:
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("CREATE TABLE IF NOT EXISTS smoke (id INTEGER)")
+        cursor.execute("INSERT INTO smoke VALUES (1)")
+        connection.commit()
+        assert (root / "bridge.db-wal").exists() or (root / "bridge.db-shm").exists()
+    finally:
+        # sqlite3.connect(...) as a context manager commits/rolls back but does
+        # NOT close the underlying handle. Explicit close is required so
+        # TemporaryDirectory can remove the SQLite files on Windows.
+        cursor.close()
+        connection.close()
     source = root / "a.part"
     target = root / "a.txt"
     source.write_text("atomic", encoding="utf-8")

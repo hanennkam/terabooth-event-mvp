@@ -124,6 +124,13 @@ conflict both returned code 2.
 
 **BLOCKED / NOT TESTED on Windows.**
 
+A validation-tooling cleanup defect was reported from the Windows run:
+`TemporaryDirectory` cleanup raised `WinError 32` because `sqlite3.connect(...)`
+as a context manager did not close the database handle. The validation script
+now closes its cursor/connection explicitly and has a regression test. The
+physical Windows rerun remains required; see
+`PHASE_5A_2_WINDOWS_VALIDATION_CLEANUP_FIX.md`.
+
 The validation script covers Unicode filenames, spaces in paths, atomic replace,
 ZIP temp cleanup, SQLite WAL and manifest compatibility in a disposable
 directory. It was smoke-tested on macOS; no Windows NTFS/locking behavior is
