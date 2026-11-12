@@ -1820,3 +1820,19 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Shortest path: one authorized driver-mode calibration, verify uncut 4x6, restore
   mock. HFP optional.
 - Report: `docs/technical/PHASE_6I_NATIVE_WINDOWS_DRIVER_PRINTING.md`.
+
+
+---
+
+## Phase 7A — First runtime integration (2026-11-13)
+
+**BLOCKED at native Cascable licence/provisioning; no camera/print.**
+
+- Reused production launch, Bridge health, synthetic iPad upload and Phase 6I
+  printing evidence. No code changes or full reruns.
+- Production app has native camera disabled/no licence; demo bundle has licence
+  but no provisioning profile/wildcard. Exact blocker documented.
+- No physical camera/print. Production mock/spooler off; data/auth unchanged.
+- Next: production licence or provisionable demo wildcard, then one real EOS
+  capture -> Bridge -> QR test.
+- Report: `docs/technical/PHASE_7A_FIRST_RUNTIME_INTEGRATION.md`.

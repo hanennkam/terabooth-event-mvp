@@ -114,6 +114,7 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 6G XPS backend verification: `docs/technical/PHASE_6G_XPS_BACKEND_VERIFICATION.md`
 - Phase 6H DNP vendor mechanism discovery: `docs/technical/PHASE_6H_DNP_VENDOR_MECHANISM_DISCOVERY.md`
 - Phase 6I native Windows driver printing: `docs/technical/PHASE_6I_NATIVE_WINDOWS_DRIVER_PRINTING.md`
+- Phase 7A first runtime integration: `docs/technical/PHASE_7A_FIRST_RUNTIME_INTEGRATION.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`
