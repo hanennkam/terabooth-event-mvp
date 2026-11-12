@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Secrets — only the example file ships
+.env
+.env.*
+!.env.example
+
+# Python / Windows bridge
+windows_bridge/.venv/
+windows_bridge/data/
+windows_bridge/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Flutter / Dart (iPad app)
+ipad_app/build/
+ipad_app/.dart_tool/
+ipad_app/.idea/
+ipad_app/.flutter-plugins-dependencies
+ipad_app/ios/build/
+ipad_app/ios/Flutter/ephemeral/
+ipad_app/ios/Flutter/Generated.xcconfig
+ipad_app/ios/Pods/
+
+# Xcode (macOS demo)
+macos_cascable_demo/build/
+macos_cascable_demo/DerivedData/
+**/xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+
+# CascableCore evaluation licence — never commit (root-level safety net)
+CascableCoreLicense.licence
+*.cascablelicence
+*Demo License*.zip
+
+# Logs
+*.log

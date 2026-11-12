@@ -1,0 +1,32 @@
+{
+  "pins" : [
+    {
+      "identity" : "cascablecore-distribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Cascable/cascablecore-distribution",
+      "state" : {
+        "revision" : "4407ce7682e82bb0b152ddcfad4cfd98609941fa",
+        "version" : "18.0.2"
+      }
+    },
+    {
+      "identity" : "cascablecore-simulated-camera",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Cascable/cascablecore-simulated-camera",
+      "state" : {
+        "revision" : "64620d41f184a8ad5a0933424ba22f94b600d158",
+        "version" : "1.0.14"
+      }
+    },
+    {
+      "identity" : "cascablecore-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Cascable/cascablecore-swift",
+      "state" : {
+        "revision" : "69a6c1dfda0cf732d884e5c4984e456ec800fdb0",
+        "version" : "18.0.2"
+      }
+    }
+  ],
+  "version" : 2
+}

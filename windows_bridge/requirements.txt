@@ -1,0 +1,2 @@
+# Development/test install. Runtime deployment uses requirements-runtime.txt.
+-r requirements-dev.txt

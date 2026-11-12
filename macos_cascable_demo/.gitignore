@@ -1,0 +1,4 @@
+CascableCoreLicense.licence
+*.cascablelicence
+build/
+DerivedData/

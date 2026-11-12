@@ -1,0 +1,355 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		29986732D722D3C8356E0417 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD292A5A038CF69BEE0F4EC5 /* main.swift */; };
+		445023D31F42BA37F7BD118D /* CascableCore in Frameworks */ = {isa = PBXBuildFile; productRef = BED056D7CDA4BA7331CD0779 /* CascableCore */; };
+		8F92C771784D56EF41788733 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF2FAED258B86A4C2C2E1E79 /* Cocoa.framework */; };
+		D2A0AE0F1EF4F4DB55DD0102 /* CascableCoreLicense.licence in Resources */ = {isa = PBXBuildFile; fileRef = CCD7F5A501546D893CD7D794 /* CascableCoreLicense.licence */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A41CFA774351EE33BB98DE2A /* TeraboothCascableMacDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeraboothCascableMacDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF2FAED258B86A4C2C2E1E79 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		BD292A5A038CF69BEE0F4EC5 /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		CCD7F5A501546D893CD7D794 /* CascableCoreLicense.licence */ = {isa = PBXFileReference; includeInIndex = 1; path = CascableCoreLicense.licence; sourceTree = "<group>"; };
+		DD68BF41C3125BB1F0AC60C1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F9B3E3CA3DF89A84C1295621 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8F92C771784D56EF41788733 /* Cocoa.framework in Frameworks */,
+				445023D31F42BA37F7BD118D /* CascableCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03FC78BFC5AEF176A823805E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F3A6B35752B6EEE838B4F5A0 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0845EF89F6D256C221886E00 /* TeraboothCascableMacDemo */ = {
+			isa = PBXGroup;
+			children = (
+				BD292A5A038CF69BEE0F4EC5 /* main.swift */,
+				DD68BF41C3125BB1F0AC60C1 /* Info.plist */,
+				CCD7F5A501546D893CD7D794 /* CascableCoreLicense.licence */,
+			);
+			name = TeraboothCascableMacDemo;
+			path = .;
+			sourceTree = "<group>";
+		};
+		1E44ABE40229412F0B9BCD30 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A41CFA774351EE33BB98DE2A /* TeraboothCascableMacDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		32E99D3D252AD1115E9613E5 = {
+			isa = PBXGroup;
+			children = (
+				1E44ABE40229412F0B9BCD30 /* Products */,
+				03FC78BFC5AEF176A823805E /* Frameworks */,
+				0845EF89F6D256C221886E00 /* TeraboothCascableMacDemo */,
+			);
+			sourceTree = "<group>";
+		};
+		F3A6B35752B6EEE838B4F5A0 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				AF2FAED258B86A4C2C2E1E79 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6D6EDC44FB85A6C906E233F7 /* TeraboothCascableMacDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 827B776D2DF1468D954868D2 /* Build configuration list for PBXNativeTarget "TeraboothCascableMacDemo" */;
+			buildPhases = (
+				CEA1A4D6B51DBBAB670F8470 /* Sources */,
+				F9B3E3CA3DF89A84C1295621 /* Frameworks */,
+				015BC7D0B2FFB341854D01CE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TeraboothCascableMacDemo;
+			packageProductDependencies = (
+				BED056D7CDA4BA7331CD0779 /* CascableCore */,
+			);
+			productName = TeraboothCascableMacDemo;
+			productReference = A41CFA774351EE33BB98DE2A /* TeraboothCascableMacDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7D51BD78E81AF37DB1C8756F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = 0097870E798CEE0246019263 /* Build configuration list for PBXProject "TeraboothCascableMacDemo" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 32E99D3D252AD1115E9613E5;
+			minimizedProjectReferenceProxies = 0;
+			packageReferences = (
+				4E323A090002B6E2F0C329D4 /* XCRemoteSwiftPackageReference "cascablecore-distribution" */,
+			);
+			preferredProjectObjectVersion = 100;
+			productRefGroup = 1E44ABE40229412F0B9BCD30 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6D6EDC44FB85A6C906E233F7 /* TeraboothCascableMacDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		015BC7D0B2FFB341854D01CE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D2A0AE0F1EF4F4DB55DD0102 /* CascableCoreLicense.licence in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CEA1A4D6B51DBBAB670F8470 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29986732D722D3C8356E0417 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		45FDEB1F071E3A3CFE616D19 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		83897EBC78FB5E827414F760 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = se.cascable.CascableCoreMacDemo;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AAB4E235CD999E5458660633 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = se.cascable.CascableCoreMacDemo;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F80B3449E287DEE2ECA5FA6D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0097870E798CEE0246019263 /* Build configuration list for PBXProject "TeraboothCascableMacDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F80B3449E287DEE2ECA5FA6D /* Debug */,
+				45FDEB1F071E3A3CFE616D19 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		827B776D2DF1468D954868D2 /* Build configuration list for PBXNativeTarget "TeraboothCascableMacDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAB4E235CD999E5458660633 /* Release */,
+				83897EBC78FB5E827414F760 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4E323A090002B6E2F0C329D4 /* XCRemoteSwiftPackageReference "cascablecore-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Cascable/cascablecore-distribution";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 18.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BED056D7CDA4BA7331CD0779 /* CascableCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E323A090002B6E2F0C329D4 /* XCRemoteSwiftPackageReference "cascablecore-distribution" */;
+			productName = CascableCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7D51BD78E81AF37DB1C8756F /* Project object */;
+}
