@@ -142,6 +142,15 @@ class WindowsSpoolerPrinter:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if proc.returncode != 0:
             raise RuntimeError((proc.stderr or proc.stdout or "print failed").strip())
+        try:
+            config_data = json.loads(config_out.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(f"DNP print config missing/invalid: {exc}") from exc
+        config_errors = validate_job_config(config_data)
+        if config_errors:
+            raise RuntimeError(
+                "DNP print blocked after submission: " + ", ".join(config_errors)
+            )
         return PrintHandle("spooler", self.settings.printer_name, "printing")
 
     def status(self, handle: PrintHandle) -> PrintStatus:
@@ -213,6 +222,39 @@ def printer_preflight(settings: Settings) -> dict:
     except Exception as exc:  # noqa: BLE001
         result["query_error"] = str(exc)
         return result
+
+
+def validate_job_config(data: dict) -> list[str]:
+    """Validate the sidecar written by print_xps.ps1 before claiming acceptance."""
+    errors: list[str] = []
+    if data.get("mode") != "spooler_job":
+        errors.append("mode_not_spooler_job")
+    if "XpsDocumentWriter" not in str(data.get("mechanism", "")):
+        errors.append("mechanism_not_xps")
+    if data.get("page_inches") != "4x6":
+        errors.append("page_not_4x6")
+    if data.get("page_px_96dpi") != "384x576":
+        errors.append("page_geometry_wrong")
+    expected = {
+        "media": "PR_4x6",
+        "orientation": "Portrait",
+        "resolution": "300x300",
+        "cut": "CUT_STANDARD",
+    }
+    for key, value in expected.items():
+        if data.get(key) != value:
+            errors.append(f"{key}_not_required")
+        if data.get(f"ticket_{key}") != value:
+            errors.append(f"ticket_{key}_not_required")
+        if data.get(f"driver_accepted_{key}") != value:
+            errors.append(f"driver_{key}_not_accepted")
+    if data.get("driver_conflict") != "NoConflict":
+        errors.append("driver_ticket_conflict")
+    if data.get("driver_validated") is not True:
+        errors.append("driver_ticket_not_validated")
+    if data.get("physical_completion") != "unverified":
+        errors.append("physical_completion_must_remain_unverified")
+    return errors
 
 
 def build_printer(settings: Settings) -> Printer:

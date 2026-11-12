@@ -1,4 +1,5 @@
 import hashlib
+from pathlib import Path
 import io
 import json
 import time
@@ -336,6 +337,9 @@ def test_xps_backend_uses_explicit_job_ticket_and_4x6_page():
     assert "PR_4x6" in text
     assert "CUT_STANDARD" in text
     assert "Write($page, $ticket)" in text
+    assert "MergeAndValidatePrintTicket" in text
+    assert "DryRun" in text
+    assert "driver_conflict" in text
     assert "CUT_2INCH" not in text
     legacy = (Path(__file__).resolve().parent.parent / "scripts" / "print_image.ps1").read_text(encoding="utf-8")
     assert "print_xps.ps1" in legacy
@@ -363,6 +367,23 @@ def test_adapter_invokes_xps_backend_with_job_config_path(tmp_path, monkeypatch)
     seen = {}
     def fake_run(cmd, **kwargs):
         seen["cmd"] = cmd
+        idx = cmd.index("-ConfigOut")
+        Path(cmd[idx + 1]).write_text(json.dumps({
+            "mode": "spooler_job",
+            "mechanism": "XpsDocumentWriter+explicit_PrintTicket",
+            "page_inches": "4x6",
+            "page_px_96dpi": "384x576",
+            "media": "PR_4x6", "orientation": "Portrait",
+            "resolution": "300x300", "cut": "CUT_STANDARD",
+            "ticket_media": "PR_4x6", "ticket_orientation": "Portrait",
+            "ticket_resolution": "300x300", "ticket_cut": "CUT_STANDARD",
+            "driver_accepted_media": "PR_4x6",
+            "driver_accepted_orientation": "Portrait",
+            "driver_accepted_resolution": "300x300",
+            "driver_accepted_cut": "CUT_STANDARD",
+            "driver_conflict": "NoConflict", "driver_validated": True,
+            "physical_completion": "unverified",
+        }), encoding="utf-8")
         return SimpleNamespace(returncode=0, stdout='{"mechanism":"xps"}', stderr="")
     monkeypatch.setattr(printer_module.subprocess, "run", fake_run)
     handle = WindowsSpoolerPrinter(s).submit("job_xps", artefact, 1)
@@ -395,3 +416,45 @@ def test_preflight_requires_xps_job_level(tmp_path, monkeypatch):
         assert False
     except RuntimeError as exc:
         assert "job-level PrintTicket backend unavailable" in str(exc)
+
+
+def test_job_config_rejects_unsupported_or_conflicting_settings():
+    from app.printer import validate_job_config
+
+    good = {
+        "mode": "spooler_job",
+        "mechanism": "XpsDocumentWriter+explicit_PrintTicket",
+        "page_inches": "4x6", "page_px_96dpi": "384x576",
+        "media": "PR_4x6", "orientation": "Portrait",
+        "resolution": "300x300", "cut": "CUT_STANDARD",
+        "ticket_media": "PR_4x6", "ticket_orientation": "Portrait",
+        "ticket_resolution": "300x300", "ticket_cut": "CUT_STANDARD",
+        "driver_accepted_media": "PR_4x6",
+        "driver_accepted_orientation": "Portrait",
+        "driver_accepted_resolution": "300x300",
+        "driver_accepted_cut": "CUT_STANDARD",
+        "driver_conflict": "NoConflict", "driver_validated": True,
+        "physical_completion": "unverified",
+    }
+    assert validate_job_config(good) == []
+    cases = [
+        {"cut": "CUT_2INCH", "ticket_cut": "CUT_2INCH", "driver_accepted_cut": "CUT_2INCH"},
+        {"media": "PC", "ticket_media": "PC", "driver_accepted_media": "PC"},
+        {"orientation": "Landscape", "ticket_orientation": "Landscape", "driver_accepted_orientation": "Landscape"},
+        {"page_inches": "2x6", "page_px_96dpi": "192x576"},
+        {"driver_conflict": "Conflict", "driver_validated": False},
+        {"physical_completion": "completed"},
+    ]
+    for change in cases:
+        bad = dict(good)
+        bad.update(change)
+        assert validate_job_config(bad), change
+
+
+def test_spooler_status_remains_unknown_not_completed():
+    from app.printer import PrintHandle, WindowsSpoolerPrinter
+
+    s = Settings(data_dir=Path('/tmp'), db_path=Path('/tmp/t.db'), printer_name='DS-RX1')
+    status = WindowsSpoolerPrinter(s).status(PrintHandle("spooler", "DS-RX1"))
+    assert status.state == "unknown"
+    assert status.completion == "unknown"

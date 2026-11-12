@@ -2,7 +2,9 @@ param(
   [Parameter(Mandatory=$true)][string]$ImagePath,
   [Parameter(Mandatory=$true)][string]$PrinterName,
   [int]$Copies = 1,
-  [Parameter(Mandatory=$true)][string]$ConfigOut
+  [Parameter(Mandatory=$true)][string]$ConfigOut,
+  [switch]$DryRun,
+  [string]$XpsOut = ""
 )
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Printing
@@ -10,31 +12,65 @@ Add-Type -AssemblyName ReachFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName PresentationFramework
 
+function Read-Ticket($ticket) {
+  $stream = $ticket.GetXmlStream()
+  $reader = New-Object System.IO.StreamReader($stream)
+  $text = $reader.ReadToEnd()
+  $reader.Dispose()
+  $stream.Dispose()
+  $xml = [xml]$text
+  $feature = @{}
+  foreach ($f in $xml.PrintTicket.Feature) {
+    $option = @($f.Option) | Select-Object -First 1
+    $feature[[string]$f.name] = if ($option) { [string]$option.name } else { "" }
+  }
+  return [pscustomobject]@{
+    media = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageMediaSize*" } | ForEach-Object { $_.Value }) -join ","
+    orientation = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageOrientation*" } | ForEach-Object { $_.Value }) -join ","
+    resolution = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageResolution*" } | ForEach-Object { $_.Value }) -join ","
+    cut = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*DocumentCUTTERCONTROL*" } | ForEach-Object { $_.Value }) -join ","
+  }
+}
+
 $server = New-Object System.Printing.LocalPrintServer
 $queue = $server.GetPrintQueue($PrinterName)
 $ticket = $queue.UserPrintTicket
 if ($null -eq $ticket) { throw "Per-user PrintTicket unavailable: $PrinterName" }
 
-# Capture and validate the exact ticket requested for this job.
-$stream = $ticket.GetXmlStream()
-$reader = New-Object System.IO.StreamReader($stream)
-$text = $reader.ReadToEnd()
-$reader.Dispose()
-$stream.Dispose()
-$xml = [xml]$text
-$feature = @{}
-foreach ($f in $xml.PrintTicket.Feature) {
-  $option = @($f.Option) | Select-Object -First 1
-  $feature[[string]$f.name] = if ($option) { [string]$option.name } else { "" }
+# Validate the exact ticket against the installed driver before creating output.
+$mergeMethod = $queue.GetType().GetMethod(
+  "MergeAndValidatePrintTicket",
+  [Type[]]@([System.Printing.PrintTicket], [System.Printing.PrintTicket], [System.Printing.PrintTicketScope])
+)
+if ($null -eq $mergeMethod) { throw "MergeAndValidatePrintTicket overload unavailable" }
+$validation = $mergeMethod.Invoke(
+  $queue, [object[]]@($ticket, $ticket, [System.Printing.PrintTicketScope]::Job)
+)
+if ($null -eq $validation) { throw "Driver returned no validation result" }
+$validated = $validation.ValidatedPrintTicket
+$conflict = $validation.ConflictStatus
+if ($null -eq $validated) { throw "Driver returned no validated PrintTicket" }
+if ($conflict -ne [System.Printing.ConflictStatus]::NoConflict) {
+  throw "Blocked: driver ticket merge conflict: $conflict"
 }
-$media = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageMediaSize*" } | ForEach-Object { $_.Value }) -join ","
-$orientation = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageOrientation*" } | ForEach-Object { $_.Value }) -join ","
-$resolution = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*PageResolution*" } | ForEach-Object { $_.Value }) -join ","
-$cut = @($feature.GetEnumerator() | Where-Object { $_.Key -like "*DocumentCUTTERCONTROL*" } | ForEach-Object { $_.Value }) -join ","
-if ($media -notlike "*PR_4x6*") { throw "Blocked: ticket media is not PR_4x6 ($media)" }
-if ($orientation -notlike "*Portrait*") { throw "Blocked: ticket orientation is not Portrait ($orientation)" }
-if ($resolution -notlike "*Option1*") { throw "Blocked: ticket resolution is not 300x300 ($resolution)" }
-if ($cut -notlike "*CUT_STANDARD*") { throw "Blocked: ticket cut is not CUT_STANDARD ($cut)" }
+$requested = Read-Ticket $ticket
+$accepted = Read-Ticket $validated
+$privateCutUnverified = $false
+foreach ($field in @("media", "orientation", "resolution")) {
+  if ([string]$requested.$field -ne [string]$accepted.$field) {
+    throw "Blocked: driver overrode $field ($($requested.$field) -> $($accepted.$field))"
+  }
+}
+if ([string]$requested.cut -ne [string]$accepted.cut) {
+  if (-not $DryRun) {
+    throw "Blocked: driver did not preserve private cut feature ($($requested.cut) -> $($accepted.cut))"
+  }
+  $privateCutUnverified = $true
+}
+if ($requested.media -notlike "*PR_4x6*") { throw "Blocked: requested media is not PR_4x6 ($($requested.media))" }
+if ($requested.orientation -notlike "*Portrait*") { throw "Blocked: requested orientation is not Portrait ($($requested.orientation))" }
+if ($requested.resolution -notlike "*Option1*") { throw "Blocked: requested resolution is not 300x300 ($($requested.resolution))" }
+if ($requested.cut -notlike "*CUT_STANDARD*") { throw "Blocked: requested cut is not CUT_STANDARD ($($requested.cut))" }
 
 $image = New-Object System.Windows.Media.Imaging.BitmapImage
 $image.BeginInit()
@@ -57,13 +93,22 @@ $visual.Height = 576
 [System.Windows.Documents.FixedPage]::SetTop($visual, 0)
 $page.Children.Add($visual)
 
-$writer = [System.Windows.Xps.XpsDocumentWriter]::CreateXpsDocumentWriter($queue)
-for ($i = 0; $i -lt $Copies; $i++) {
-  $writer.Write($page, $ticket)
+$mode = if ($DryRun) { "dry_run_xps_file" } else { "spooler_job" }
+if ($DryRun) {
+  if ([string]::IsNullOrWhiteSpace($XpsOut)) { throw "XpsOut is required for DryRun" }
+  Remove-Item -Force -ErrorAction SilentlyContinue $XpsOut
+  $xps = New-Object System.Windows.Xps.Packaging.XpsDocument($XpsOut, [System.IO.FileAccess]::ReadWrite)
+  $writer = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($xps)
+  $writer.Write($page)
+  $xps.Close()
+} else {
+  $writer = [System.Printing.PrintQueue]::CreateXpsDocumentWriter($queue)
+  for ($i = 0; $i -lt $Copies; $i++) { $writer.Write($page, $ticket) }
 }
 
 $config = [pscustomobject]@{
-  mechanism = "XpsDocumentWriter+explicit_PrintTicket"
+  mechanism = if ($DryRun) { "XpsDocumentWriter to XPS file (dry-run)" } else { "XpsDocumentWriter+explicit_PrintTicket" }
+  mode = $mode
   queue = $PrinterName
   image = (Resolve-Path $ImagePath).Path
   page_inches = "4x6"
@@ -74,12 +119,22 @@ $config = [pscustomobject]@{
   cut = "CUT_STANDARD"
   copies = $Copies
   ticket_source = "per-user PrintTicket"
-  ticket_media = $media
-  ticket_orientation = $orientation
-  ticket_resolution = $resolution
-  ticket_cut = $cut
-  effective_job_settings_verified = $false
+  ticket_media = $requested.media
+  ticket_orientation = $requested.orientation
+  ticket_resolution = $requested.resolution
+  ticket_cut = $requested.cut
+  driver_conflict = [string]$conflict
+  driver_validated = $true
+  driver_accepted_media = $accepted.media
+  driver_accepted_orientation = $accepted.orientation
+  driver_accepted_resolution = $accepted.resolution
+  driver_accepted_cut = $accepted.cut
+  private_vendor_cut_confirmed = (-not $privateCutUnverified)
+  private_vendor_cut_note = if ($privateCutUnverified) { "ValidatedPrintTicket omitted private DNP cut namespace; dry-run geometry only." } else { "" }
+  effective_settings_verified = $false
   physical_calibrated = $false
+  physical_completion = "unverified"
+  spooler_acceptance = if ($DryRun) { "not_submitted" } else { "accepted_by_script" }
 }
 $config | ConvertTo-Json -Depth 5 | Set-Content -Path $ConfigOut -Encoding UTF8
 $config | ConvertTo-Json -Depth 5 -Compress

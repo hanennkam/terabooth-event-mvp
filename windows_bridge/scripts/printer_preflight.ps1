@@ -78,6 +78,34 @@ try {
   $capRes = @(Get-CapabilityOptions $caps $cfg "PageResolution")
   $capCut = @(Get-CapabilityOptions $caps $cfg "DocumentCUTTERCONTROL")
   $jobs = @(Get-PrintJob -PrinterName $QueueName -ErrorAction SilentlyContinue)
+  $driverConflict = [System.Printing.ConflictStatus]::NoConflict
+  $driverTicket = $null
+  $driverAcceptedMedia = ""
+  $driverAcceptedOrientation = ""
+  $driverAcceptedResolution = ""
+  $driverAcceptedCut = ""
+  try {
+    if ($null -ne $queue.UserPrintTicket) {
+      $mergeMethod = $queue.GetType().GetMethod(
+        "MergeAndValidatePrintTicket",
+        [Type[]]@([System.Printing.PrintTicket], [System.Printing.PrintTicket], [System.Printing.PrintTicketScope])
+      )
+      if ($null -eq $mergeMethod) { throw "MergeAndValidatePrintTicket overload unavailable" }
+      $driverValidation = $mergeMethod.Invoke(
+        $queue, [object[]]@($queue.UserPrintTicket, $queue.UserPrintTicket, [System.Printing.PrintTicketScope]::Job)
+      )
+      if ($null -ne $driverValidation) {
+        $driverConflict = $driverValidation.ConflictStatus
+        $driverTicket = $driverValidation.ValidatedPrintTicket
+      }
+      if ($null -ne $driverTicket) {
+        $driverAcceptedMedia = [string](Get-TicketSelection $driverTicket "*PageMediaSize*")
+        $driverAcceptedOrientation = [string](Get-TicketSelection $driverTicket "*PageOrientation*")
+        $driverAcceptedResolution = [string](Get-TicketSelection $driverTicket "*PageResolution*")
+        $driverAcceptedCut = [string](Get-TicketSelection $driverTicket "*DocumentCUTTERCONTROL*")
+      }
+    }
+  } catch { }
   $blockers = @()
   if ([string]$p.PrinterStatus -ne "Normal") { $blockers += "printer_status" }
   if ([bool]$p.WorkOffline) { $blockers += "work_offline" }
@@ -92,6 +120,12 @@ try {
   if ($capMedia -notcontains "ns0000:PR_4x6") { $blockers += "capability_missing_PR_4x6" }
   if ($capCut -notcontains "ns0000:CUT_STANDARD") { $blockers += "capability_missing_CUT_STANDARD" }
   if (-not $xpsAvailable) { $blockers += "xps_printticket_unavailable" }
+  if ($null -eq $driverTicket) { $blockers += "driver_ticket_validation_unavailable" }
+  if ($driverConflict -ne [System.Printing.ConflictStatus]::NoConflict) { $blockers += "driver_ticket_conflict" }
+  if ($driverAcceptedMedia -ne $user.media) { $blockers += "driver_media_override" }
+  if ($driverAcceptedOrientation -ne $user.orientation) { $blockers += "driver_orientation_override" }
+  if ($driverAcceptedResolution -ne $user.resolution) { $blockers += "driver_resolution_override" }
+  if ($driverAcceptedCut -ne $user.cut) { $blockers += "driver_cut_override" }
   $configurationReady = ($blockers.Count -eq 0)
   [pscustomobject]@{
     available = $true
@@ -138,6 +172,18 @@ try {
       physical_calibrated = $false
       reason = "No job submitted; effective per-job settings remain unverified until physical calibration."
     }
+    driver_ticket_validation = [pscustomobject]@{
+      conflict = [string]$driverConflict
+      requested_media = [string]$user.media
+      accepted_media = $driverAcceptedMedia
+      requested_orientation = [string]$user.orientation
+      accepted_orientation = $driverAcceptedOrientation
+      requested_resolution = [string]$user.resolution
+      accepted_resolution = $driverAcceptedResolution
+      requested_cut = [string]$user.cut
+      accepted_cut = $driverAcceptedCut
+      accepted = ($null -ne $driverTicket -and $driverConflict -eq [System.Printing.ConflictStatus]::NoConflict)
+    }
     blockers = @($blockers)
     query_error = ""
   } | ConvertTo-Json -Depth 8 -Compress
@@ -167,6 +213,7 @@ try {
     capabilities = $null
     job_request = $null
     job_level = $null
+    driver_ticket_validation = $null
     blockers = @("preflight_query_failed")
     query_error = $_.Exception.Message
   } | ConvertTo-Json -Depth 8 -Compress
