@@ -36,5 +36,8 @@ CascableCoreLicense.licence
 *.cascablelicence
 *Demo License*.zip
 
+# Generated validation reports (machine-specific paths, regenerated per run)
+windows_bridge/validation/validation-report.json
+
 # Logs
 *.log

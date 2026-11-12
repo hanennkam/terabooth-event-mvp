@@ -33,6 +33,31 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 TOKEN = "validation-api-token"
 
+_WINDOWS_VERSION_FIELDS = (
+    "major",
+    "minor",
+    "build",
+    "platform",
+    "service_pack",
+    "service_pack_major",
+    "service_pack_minor",
+    "suite_mask",
+    "product_type",
+)
+
+
+def windows_version_info(version=None) -> dict[str, object] | None:
+    """Return documented Windows version fields without relying on _asdict()."""
+    if version is None:
+        if not sys.platform.startswith("win"):
+            return None
+        version = sys.getwindowsversion()
+    return {
+        field: getattr(version, field)
+        for field in _WINDOWS_VERSION_FIELDS
+        if hasattr(version, field)
+    }
+
 
 def lan_ip() -> str:
     try:
@@ -190,7 +215,7 @@ def main() -> int:
     try:
         report["environment"] = {
             "platform": sys.platform,
-            "windows": sys.getwindowsversion()._asdict() if sys.platform.startswith("win") else None,
+            "windows": windows_version_info(),
             "python": sys.version.split()[0],
             "executable": py,
             "temp_data": str(data),

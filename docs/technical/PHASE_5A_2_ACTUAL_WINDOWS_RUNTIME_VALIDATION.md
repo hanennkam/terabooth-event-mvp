@@ -131,6 +131,11 @@ now closes its cursor/connection explicitly and has a regression test. The
 physical Windows rerun remains required; see
 `PHASE_5A_2_WINDOWS_VALIDATION_CLEANUP_FIX.md`.
 
+A second tooling-only issue was reported from Windows: the validation report
+called `sys.getwindowsversion()._asdict()`, which is not guaranteed in CPython.
+The report now reads documented version attributes. The Windows rerun is still
+required; see `PHASE_5A_2_WINDOWS_OS_VERSION_COMPATIBILITY_FIX.md`.
+
 The validation script covers Unicode filenames, spaces in paths, atomic replace,
 ZIP temp cleanup, SQLite WAL and manifest compatibility in a disposable
 directory. It was smoke-tested on macOS; no Windows NTFS/locking behavior is
