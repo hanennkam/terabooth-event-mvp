@@ -472,7 +472,9 @@ def test_driver_managed_submit_uses_default_page_and_config(tmp_path, monkeypatc
     s.jobs_dir.mkdir(parents=True, exist_ok=True)
     artefact = tmp_path / "artefact.jpg"; artefact.write_bytes(b"x")
     monkeypatch.setattr(printer_module, "printer_preflight", lambda _s: {
-        "available": True, "default_page": {"is_4x6": True, "landscape": False}
+        "available": True,
+        "driver_managed": {"ready": True},
+        "default_page": {"is_4x6": True, "landscape": False},
     })
     seen = {}
     def fake_run(cmd, **kwargs):
@@ -503,7 +505,9 @@ def test_driver_managed_blocks_wrong_default_page(tmp_path, monkeypatch):
     )
     artifact = tmp_path / "a.jpg"; artifact.write_bytes(b"x")
     monkeypatch.setattr(printer_module, "printer_preflight", lambda _s: {
-        "available": True, "default_page": {"is_4x6": False, "landscape": False}
+        "available": True,
+        "driver_managed": {"ready": False},
+        "default_page": {"is_4x6": False, "landscape": False},
     })
     called = {"run": False}
     monkeypatch.setattr(printer_module.subprocess, "run",
@@ -512,7 +516,7 @@ def test_driver_managed_blocks_wrong_default_page(tmp_path, monkeypatch):
         WindowsDriverPrinter(s).submit("j", artifact, 1)
         assert False
     except RuntimeError as exc:
-        assert "default page is not 4x6 portrait" in str(exc)
+        assert "driver-managed preflight not ready" in str(exc)
     assert called["run"] is False
 
 

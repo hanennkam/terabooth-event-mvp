@@ -140,6 +140,12 @@ try {
   if ($driverAcceptedResolution -ne $user.resolution) { $blockers += "driver_resolution_override" }
   if ($driverAcceptedCut -ne $user.cut) { $blockers += "driver_cut_override" }
   $configurationReady = ($blockers.Count -eq 0)
+  $driverManagedReady = (
+    $defaultPage.is_4x6 -eq $true -and
+    [string]$p.PrinterStatus -eq "Normal" -and
+    -not [bool]$p.WorkOffline -and
+    $jobs.Count -eq 0
+  )
   [pscustomobject]@{
     available = $true
     ready = $configurationReady
@@ -186,6 +192,23 @@ try {
       physical_calibrated = $false
       reason = "No job submitted; effective per-job settings remain unverified until physical calibration."
     }
+    driver_managed = [pscustomobject]@{
+      available = [bool]$defaultPage.available
+      ready = [bool]$driverManagedReady
+      physical_ready = $false
+      mechanism = "Windows PrintDocument default page (driver preferences)"
+      paper_name = [string]$defaultPage.paper_name
+      paper_width = [int]$defaultPage.width
+      paper_height = [int]$defaultPage.height
+      landscape = [bool]$defaultPage.landscape
+      paper_overridden = $false
+      orientation_overridden = $false
+      margins_overridden = $false
+      private_vendor_features_set = $false
+      cut_policy = "Windows DNP driver preferences"
+      cut_software_verified = $false
+      physical_calibrated = $false
+    }
     driver_ticket_validation = [pscustomobject]@{
       conflict = [string]$driverConflict
       requested_media = [string]$user.media
@@ -228,6 +251,7 @@ try {
     capabilities = $null
     job_request = $null
     job_level = $null
+    driver_managed = $null
     driver_ticket_validation = $null
     blockers = @("preflight_query_failed")
     query_error = $_.Exception.Message

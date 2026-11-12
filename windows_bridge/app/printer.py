@@ -244,6 +244,9 @@ class WindowsDriverPrinter:
                 "DNP driver print blocked: preflight unavailable: "
                 + str(preflight.get("query_error") or "unknown error")
             )
+        driver = preflight.get("driver_managed") or {}
+        if driver.get("ready") is not True:
+            raise RuntimeError("DNP driver print blocked: driver-managed preflight not ready")
         page = preflight.get("default_page") or {}
         if page.get("is_4x6") is not True or page.get("landscape") is True:
             raise RuntimeError("DNP driver print blocked: default page is not 4x6 portrait")
