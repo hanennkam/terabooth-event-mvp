@@ -1851,3 +1851,19 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
   USE_NATIVE_CAMERA=true. No code/config bypass.
 - No source/build-default/iPad/camera/print changes; prior evidence reused.
 - Report: `docs/technical/PHASE_7B_CASCABLE_PRODUCTION_BUNDLE_EVALUATION.md`.
+
+
+---
+
+## Phase 7C — Runtime workflow readiness (2026-11-13)
+
+**PASS software; physical camera blocked at vendor licence.**
+
+- Fixed simulated-camera connection labels to explicitly say simulated.
+- Temporary JPEG import now runs through ImageIngestor/StorageService before
+  Bridge; remains Settings-only, MockPrinter-only, temp storage.
+- Targeted UI/import tests 11 pass; analyze clean; prior Bridge/upload/QR/print
+  evidence reused.
+- No camera/print/spooler/licence/data changes. Physical EOS blocked by
+  production-bundle Cascable licence.
+- Report: `docs/technical/PHASE_7C_RUNTIME_WORKFLOW_READINESS.md`.
