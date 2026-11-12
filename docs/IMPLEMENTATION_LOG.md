@@ -1738,3 +1738,19 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Capabilities parse fixed; job-level unavailable by design.
 - No print/spooler/queue/auth/camera changes; physical calibration pending.
 - Report: `docs/technical/PHASE_6D_6_WINDOWS_DNP_DEPLOYMENT.md`.
+
+
+---
+
+## Phase 6E — Physical DNP calibration (2026-11-13)
+
+**FAIL 4x6 standard cut; one physical sheet, no retry.**
+
+- Temporary spooler Bridge on 8788, production 8787 mock; synthetic 1200x1800
+  calibration image; one job job_c8e41a6c... submitted.
+- Spooler state unknown; physical sheet cut into two 2x6 pieces, not uncut 4x6.
+- Production restored mock, ready=true, queue 0, auth 401; temp stopped/data
+  removed; no customer/camera/queue changes.
+- 69 Bridge tests; job-level DNP cut remains unresolved; no further print
+  authorized.
+- Report: `docs/technical/PHASE_6E_PHYSICAL_CALIBRATION_AND_PRINT_VERIFICATION.md`.
