@@ -10,7 +10,20 @@ class CaptureScreen extends StatelessWidget {
   final BoothController controller;
   const CaptureScreen({super.key, required this.controller});
 
-  String _connectionLabel(CameraConnectionState state) {
+  String _connectionLabel(
+    CameraConnectionState state, {
+    required bool simulated,
+  }) {
+    if (simulated) {
+      return switch (state) {
+        CameraConnectionState.disconnected => 'Simulated camera offline',
+        CameraConnectionState.discovering => 'Finding simulated camera',
+        CameraConnectionState.connecting => 'Preparing simulated camera',
+        CameraConnectionState.connected => 'Simulated camera ready',
+        CameraConnectionState.recovering => 'Recovering simulated camera',
+        CameraConnectionState.failed => 'Simulated camera error',
+      };
+    }
     return switch (state) {
       CameraConnectionState.disconnected => 'Camera offline',
       CameraConnectionState.discovering => 'Finding camera',
@@ -40,7 +53,7 @@ class CaptureScreen extends StatelessWidget {
     }
     if (c.countdown > 0) return 'Get ready';
     if (c.photos.isNotEmpty) return 'Photo ${c.photos.length} captured';
-    return 'Connecting to camera';
+    return c.isMock ? 'Preparing simulated camera' : 'Connecting to camera';
   }
 
   @override
@@ -193,7 +206,10 @@ class CaptureScreen extends StatelessWidget {
                     top: 18,
                     left: 18,
                     child: TbPill(
-                      label: _connectionLabel(c.connectionState),
+                      label: _connectionLabel(
+                        c.connectionState,
+                        simulated: c.isMock,
+                      ),
                       color: connectionColor,
                       icon: Icons.circle,
                       dense: true,

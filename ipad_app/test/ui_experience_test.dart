@@ -188,6 +188,7 @@ void main() {
     final temp = Directory('/tmp');
     final controller = controllerFor(temp);
     addTearDown(controller.dispose);
+    await controller.cameraPipeline.connect();
     controller.phase = BoothPhase.capturing;
     controller.activePhoto = 2;
     controller.photos = [
@@ -210,7 +211,8 @@ void main() {
 
     expect(find.text('CAPTURE 2 OF 3'), findsOneWidget);
     expect(find.text('Photo 2'), findsOneWidget);
-    expect(find.textContaining('SIMULATED CAMERA'), findsOneWidget);
+    expect(find.textContaining('SIMULATED CAMERA'), findsAtLeastNWidgets(1));
+    expect(find.text('SIMULATED CAMERA READY'), findsOneWidget);
     expect(find.text('1/3 captured'), findsOneWidget);
   });
 

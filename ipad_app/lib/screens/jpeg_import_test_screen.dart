@@ -131,10 +131,20 @@ class _JpegImportTestScreenState extends State<JpegImportTestScreen> {
         captureId: id,
         sha256: sha,
       );
-      temp.prepareImportedTestReview(
+      final testEventId = 'evt_import_$id';
+      final testSessionId = 'ses_import_$id';
+      final ingested = await temp.cameraPipeline.ingestor.ingest(
         image: image,
-        testEventId: 'evt_import_$id',
-        testSessionId: 'ses_import_$id',
+        eventId: testEventId,
+        sessionId: testSessionId,
+        slot: 1,
+        captureId: id,
+        allowPng: false,
+      );
+      temp.prepareImportedTestReview(
+        image: ingested,
+        testEventId: testEventId,
+        testSessionId: testSessionId,
       );
       await temp.approve();
       final job = temp.job;
