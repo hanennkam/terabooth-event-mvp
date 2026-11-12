@@ -143,7 +143,7 @@ class WindowsSpoolerPrinter:
         if proc.returncode != 0:
             raise RuntimeError((proc.stderr or proc.stdout or "print failed").strip())
         try:
-            config_data = json.loads(config_out.read_text(encoding="utf-8"))
+            config_data = json.loads(config_out.read_text(encoding="utf-8-sig"))
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(f"DNP print config missing/invalid: {exc}") from exc
         config_errors = validate_job_config(config_data)

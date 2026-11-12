@@ -36,7 +36,7 @@ def main() -> int:
             print("DRY-RUN FAILED")
             print((proc.stderr or proc.stdout or "unknown error")[:2000])
             return 1
-        config = json.loads(config_out.read_text(encoding="utf-8"))
+        config = json.loads(config_out.read_text(encoding="utf-8-sig"))
         page = None
         with zipfile.ZipFile(xps) as package:
             for name in package.namelist():
