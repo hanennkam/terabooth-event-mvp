@@ -25,7 +25,7 @@ def _ensure_dir(path: Path, label: str) -> None:
 class Settings:
     data_dir: Path
     db_path: Path
-    printer_mode: str = "mock"          # mock | spooler | hotfolder
+    printer_mode: str = "mock"          # mock | driver | spooler | hotfolder
     printer_name: str = "DS-RX1"
     hot_folder: Path | None = None
     hot_folder_archive: Path | None = None
@@ -79,7 +79,7 @@ def _load_or_create_secret(data_dir: Path) -> str:
 def validate_settings(settings: Settings) -> list[str]:
     """Validate portable startup settings. Returns non-fatal warnings."""
     warnings: list[str] = []
-    if settings.printer_mode not in {"mock", "spooler", "hotfolder"}:
+    if settings.printer_mode not in {"mock", "driver", "spooler", "hotfolder"}:
         raise ConfigurationError(f"unknown printer mode {settings.printer_mode!r}")
     if not 1 <= settings.port <= 65535:
         raise ConfigurationError("TERABOOTH_PORT must be between 1 and 65535")

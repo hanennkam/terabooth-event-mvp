@@ -63,6 +63,7 @@ function Ticket-Object($label, $ticket) {
 
 try {
   Add-Type -AssemblyName System.Printing
+  Add-Type -AssemblyName System.Drawing
   $xpsAvailable = $true
   try { Add-Type -AssemblyName ReachFramework } catch { $xpsAvailable = $false }
   $server = New-Object System.Printing.LocalPrintServer
@@ -70,6 +71,18 @@ try {
   $p = Get-Printer -Name $QueueName
   $cfg = Get-PrintConfiguration -PrinterName $QueueName
   $drv = Get-PrinterDriver -Name $p.DriverName
+  $doc = New-Object System.Drawing.Printing.PrintDocument
+  $doc.PrinterSettings.PrinterName = $QueueName
+  $page = $doc.DefaultPageSettings
+  $defaultPage = [pscustomobject]@{
+    available = [bool]$doc.PrinterSettings.IsValid
+    paper_name = if ($page.PaperSize) { [string]$page.PaperSize.PaperName } else { "" }
+    width = if ($page.PaperSize) { [int]$page.PaperSize.Width } else { 0 }
+    height = if ($page.PaperSize) { [int]$page.PaperSize.Height } else { 0 }
+    landscape = [bool]$page.Landscape
+    is_4x6 = ($null -ne $page.PaperSize -and [string]$page.PaperSize.PaperName -match "4x6" -and -not [bool]$page.Landscape)
+  }
+  $doc.Dispose()
   $machine = Ticket-Object "machine_default" $queue.DefaultPrintTicket
   $user = Ticket-Object "user_default" $queue.UserPrintTicket
   $caps = $queue.GetPrintCapabilities()
@@ -147,6 +160,7 @@ try {
     resolution = [string]$user.resolution
     cut = [string]$user.cut
     queued_jobs = $jobs.Count
+    default_page = $defaultPage
     machine_default = $machine
     user_default = $user
     capabilities = [pscustomobject]@{
@@ -208,6 +222,7 @@ try {
     resolution = ""
     cut = ""
     queued_jobs = 0
+    default_page = $null
     machine_default = $null
     user_default = $null
     capabilities = $null

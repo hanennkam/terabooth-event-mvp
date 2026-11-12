@@ -224,6 +224,83 @@ def printer_preflight(settings: Settings) -> dict:
         return result
 
 
+class WindowsDriverPrinter:
+    """Print through the configured Windows DNP driver without overriding paper,
+    orientation, margins or private cutter features. This mirrors the classic
+    LumaBooth Assistant model: the driver/printer owns cut behaviour."""
+
+    name = "Windows Driver Managed"
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.script = Path(__file__).resolve().parent.parent / "scripts" / "print_driver.ps1"
+
+    def submit(self, job_id: str, artefact: Path, copies: int) -> PrintHandle:
+        if not self.script.exists():
+            raise RuntimeError("print_driver.ps1 missing")
+        preflight = printer_preflight(self.settings)
+        if not preflight.get("available"):
+            raise RuntimeError(
+                "DNP driver print blocked: preflight unavailable: "
+                + str(preflight.get("query_error") or "unknown error")
+            )
+        page = preflight.get("default_page") or {}
+        if page.get("is_4x6") is not True or page.get("landscape") is True:
+            raise RuntimeError("DNP driver print blocked: default page is not 4x6 portrait")
+        config_out = self.settings.jobs_dir / job_id / "driver_job_config.json"
+        config_out.parent.mkdir(parents=True, exist_ok=True)
+        cmd = [
+            "powershell", "-NoProfile", "-Sta", "-ExecutionPolicy", "Bypass",
+            "-File", str(self.script),
+            "-ImagePath", str(artefact),
+            "-PrinterName", self.settings.printer_name,
+            "-Copies", str(copies),
+            "-ConfigOut", str(config_out),
+        ]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if proc.returncode != 0:
+            raise RuntimeError((proc.stderr or proc.stdout or "print failed").strip())
+        try:
+            config_data = json.loads(config_out.read_text(encoding="utf-8-sig"))
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(f"Driver print config missing/invalid: {exc}") from exc
+        config_errors = validate_driver_job_config(config_data)
+        if config_errors:
+            raise RuntimeError(
+                "Driver print blocked after submission: " + ", ".join(config_errors)
+            )
+        return PrintHandle("driver", self.settings.printer_name, "printing")
+
+    def status(self, handle: PrintHandle) -> PrintStatus:
+        return PrintStatus("unknown", "driver accepted; physical completion unverified", "unknown")
+
+    def health(self) -> dict:
+        return {"name": self.settings.printer_name, "state": "unknown",
+                "mode": "driver",
+                "note": "Uses configured Windows DNP driver; physical completion unverified"}
+
+
+def validate_driver_job_config(data: dict) -> list[str]:
+    errors: list[str] = []
+    if data.get("mechanism") != "driver_managed_PrintDocument":
+        errors.append("mechanism_not_driver_managed")
+    if data.get("mode") != "spooler_job":
+        errors.append("mode_not_spooler_job")
+    if data.get("paper_overridden") is not False:
+        errors.append("paper_must_not_be_overridden")
+    if data.get("orientation_overridden") is not False:
+        errors.append("orientation_must_not_be_overridden")
+    if data.get("margins_overridden") is not False:
+        errors.append("margins_must_not_be_overridden")
+    if data.get("private_vendor_features_set") is not False:
+        errors.append("private_vendor_features_must_not_be_set")
+    if data.get("cut_source") != "Windows DNP driver preferences":
+        errors.append("cut_must_use_driver_preferences")
+    if data.get("physical_completion") != "unverified":
+        errors.append("physical_completion_must_remain_unverified")
+    return errors
+
+
 def validate_job_config(data: dict) -> list[str]:
     """Validate the sidecar written by print_xps.ps1 before claiming acceptance."""
     errors: list[str] = []
@@ -260,6 +337,8 @@ def validate_job_config(data: dict) -> list[str]:
 def build_printer(settings: Settings) -> Printer:
     if settings.printer_mode == "mock":
         return MockPrinter(settings)
+    if settings.printer_mode == "driver":
+        return WindowsDriverPrinter(settings)
     if settings.printer_mode == "hotfolder":
         return HotFolderPrinter(settings)
     if settings.printer_mode == "spooler":

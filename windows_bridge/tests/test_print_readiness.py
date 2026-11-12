@@ -458,3 +458,80 @@ def test_spooler_status_remains_unknown_not_completed():
     status = WindowsSpoolerPrinter(s).status(PrintHandle("spooler", "DS-RX1"))
     assert status.state == "unknown"
     assert status.completion == "unknown"
+
+
+def test_driver_managed_submit_uses_default_page_and_config(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app import printer as printer_module
+    from app.printer import WindowsDriverPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="driver", printer_name="DS-RX1",
+    )
+    s.jobs_dir.mkdir(parents=True, exist_ok=True)
+    artefact = tmp_path / "artefact.jpg"; artefact.write_bytes(b"x")
+    monkeypatch.setattr(printer_module, "printer_preflight", lambda _s: {
+        "available": True, "default_page": {"is_4x6": True, "landscape": False}
+    })
+    seen = {}
+    def fake_run(cmd, **kwargs):
+        seen["cmd"] = cmd
+        idx = cmd.index("-ConfigOut")
+        Path(cmd[idx + 1]).write_text(json.dumps({
+            "mechanism": "driver_managed_PrintDocument", "mode": "spooler_job",
+            "paper_overridden": False, "orientation_overridden": False,
+            "margins_overridden": False, "private_vendor_features_set": False,
+            "cut_source": "Windows DNP driver preferences",
+            "physical_completion": "unverified",
+        }), encoding="utf-8")
+        return SimpleNamespace(returncode=0, stdout="{}", stderr="")
+    monkeypatch.setattr(printer_module.subprocess, "run", fake_run)
+    handle = WindowsDriverPrinter(s).submit("job_driver", artefact, 1)
+    assert handle.transport == "driver"
+    assert any("print_driver.ps1" in str(x) for x in seen["cmd"])
+    assert "-ConfigOut" in seen["cmd"]
+
+
+def test_driver_managed_blocks_wrong_default_page(tmp_path, monkeypatch):
+    from app import printer as printer_module
+    from app.printer import WindowsDriverPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="driver", printer_name="DS-RX1",
+    )
+    artifact = tmp_path / "a.jpg"; artifact.write_bytes(b"x")
+    monkeypatch.setattr(printer_module, "printer_preflight", lambda _s: {
+        "available": True, "default_page": {"is_4x6": False, "landscape": False}
+    })
+    called = {"run": False}
+    monkeypatch.setattr(printer_module.subprocess, "run",
+                        lambda *a, **k: called.__setitem__("run", True))
+    try:
+        WindowsDriverPrinter(s).submit("j", artifact, 1)
+        assert False
+    except RuntimeError as exc:
+        assert "default page is not 4x6 portrait" in str(exc)
+    assert called["run"] is False
+
+
+def test_driver_config_rejects_overrides_and_false_completion():
+    from app.printer import validate_driver_job_config
+
+    good = {
+        "mechanism": "driver_managed_PrintDocument", "mode": "spooler_job",
+        "paper_overridden": False, "orientation_overridden": False,
+        "margins_overridden": False, "private_vendor_features_set": False,
+        "cut_source": "Windows DNP driver preferences",
+        "physical_completion": "unverified",
+    }
+    assert validate_driver_job_config(good) == []
+    for change in (
+        {"paper_overridden": True},
+        {"orientation_overridden": True},
+        {"private_vendor_features_set": True},
+        {"physical_completion": "completed"},
+    ):
+        bad = dict(good); bad.update(change)
+        assert validate_driver_job_config(bad)
