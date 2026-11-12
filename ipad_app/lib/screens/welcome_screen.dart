@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../booth_controller.dart';
@@ -197,9 +199,13 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
+          _welcomeBanner(context, c),
+          const SizedBox(height: 18),
           Text(
-            c.eventTitle,
+            c.currentEvent.configuration.welcome.title.trim().isEmpty
+                ? c.eventTitle
+                : c.currentEvent.configuration.welcome.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.displayMedium,
@@ -255,6 +261,72 @@ class WelcomeScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _welcomeBanner(BuildContext context, BoothController c) {
+    final w = c.currentEvent.configuration.welcome;
+    final hasImage =
+        w.backgroundMode == WelcomeBackgroundMode.image &&
+        w.backgroundImagePath != null &&
+        File(w.backgroundImagePath!).existsSync();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(TbRadius.md),
+      child: Container(
+        height: 190,
+        decoration: BoxDecoration(
+          color: Color(w.backgroundValue),
+          image: hasImage
+              ? DecorationImage(
+                  image: FileImage(File(w.backgroundImagePath!)),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.38),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              if (w.logoPath != null && File(w.logoPath!).existsSync())
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Image.file(
+                    File(w.logoPath!),
+                    height: 64,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      w.subtitle.trim().isEmpty
+                          ? 'Welcome! Tap Start to begin your photo session.'
+                          : w.subtitle,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'GUEST WELCOME PREVIEW',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 10,
+                        letterSpacing: 1.6,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -445,7 +517,13 @@ class WelcomeScreen extends StatelessWidget {
         ),
         const SizedBox(height: TbSpace.md),
         TbPrimaryButton(
-          label: 'Start Session',
+          label:
+              c.hasSelectedEvent &&
+                  c.currentEvent.configuration.welcome.buttonLabel
+                      .trim()
+                      .isNotEmpty
+              ? c.currentEvent.configuration.welcome.buttonLabel
+              : 'Start Session',
           icon: Icons.camera_alt_outlined,
           expanded: true,
           onPressed:

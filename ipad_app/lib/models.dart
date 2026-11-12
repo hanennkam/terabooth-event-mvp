@@ -366,6 +366,8 @@ class EventConfiguration {
   final EventOutputFormat outputFormat;
   final String brandingLabel;
   final EventBranding branding;
+  final EventWelcomeConfig welcome;
+  final EventCustomTemplate? customTemplate;
 
   const EventConfiguration({
     this.templateId = 'strip_2x6_3up_v1',
@@ -377,6 +379,8 @@ class EventConfiguration {
     this.outputFormat = EventOutputFormat.jpeg,
     this.brandingLabel = 'Template branding',
     this.branding = const EventBranding(),
+    this.welcome = const EventWelcomeConfig(),
+    this.customTemplate,
   });
 
   EventConfiguration copyWith({
@@ -389,6 +393,9 @@ class EventConfiguration {
     EventOutputFormat? outputFormat,
     String? brandingLabel,
     EventBranding? branding,
+    EventWelcomeConfig? welcome,
+    EventCustomTemplate? customTemplate,
+    bool clearCustomTemplate = false,
   }) => EventConfiguration(
     templateId: templateId ?? this.templateId,
     templateVersion: templateVersion ?? this.templateVersion,
@@ -399,6 +406,10 @@ class EventConfiguration {
     outputFormat: outputFormat ?? this.outputFormat,
     brandingLabel: brandingLabel ?? this.brandingLabel,
     branding: branding ?? this.branding,
+    welcome: welcome ?? this.welcome,
+    customTemplate: clearCustomTemplate
+        ? null
+        : (customTemplate ?? this.customTemplate),
   );
 
   Map<String, dynamic> toJson() => {
@@ -411,6 +422,8 @@ class EventConfiguration {
     'output_format': outputFormat.name,
     'branding_label': brandingLabel,
     'branding': branding.toJson(),
+    'welcome': welcome.toJson(),
+    if (customTemplate != null) 'custom_template': customTemplate!.toJson(),
   };
 
   factory EventConfiguration.fromJson(Map<String, dynamic>? json) {
@@ -436,6 +449,221 @@ class EventConfiguration {
       branding: EventBranding.fromJson(
         (value['branding'] as Map?)?.cast<String, dynamic>(),
       ),
+      welcome: EventWelcomeConfig.fromJson(
+        (value['welcome'] as Map?)?.cast<String, dynamic>(),
+      ),
+      customTemplate: value['custom_template'] == null
+          ? null
+          : EventCustomTemplate.fromJson(
+              (value['custom_template'] as Map).cast<String, dynamic>(),
+            ),
+    );
+  }
+}
+
+enum WelcomeBackgroundMode { color, image }
+
+enum TemplateLayerMode { overlay, background }
+
+class EventWelcomeConfig {
+  final String title;
+  final String subtitle;
+  final String buttonLabel;
+  final String backgroundHex;
+  final String? backgroundImagePath;
+  final String? logoPath;
+  final WelcomeBackgroundMode backgroundMode;
+
+  const EventWelcomeConfig({
+    this.title = '',
+    this.subtitle = 'Welcome! Tap below to start your photo session.',
+    this.buttonLabel = 'Start Session',
+    this.backgroundHex = '#111318',
+    this.backgroundImagePath,
+    this.logoPath,
+    this.backgroundMode = WelcomeBackgroundMode.color,
+  });
+
+  EventWelcomeConfig copyWith({
+    String? title,
+    String? subtitle,
+    String? buttonLabel,
+    String? backgroundHex,
+    String? backgroundImagePath,
+    String? logoPath,
+    WelcomeBackgroundMode? backgroundMode,
+    bool clearBackgroundImage = false,
+    bool clearLogo = false,
+  }) => EventWelcomeConfig(
+    title: title ?? this.title,
+    subtitle: subtitle ?? this.subtitle,
+    buttonLabel: buttonLabel ?? this.buttonLabel,
+    backgroundHex: backgroundHex ?? this.backgroundHex,
+    backgroundImagePath: clearBackgroundImage
+        ? null
+        : (backgroundImagePath ?? this.backgroundImagePath),
+    logoPath: clearLogo ? null : (logoPath ?? this.logoPath),
+    backgroundMode: backgroundMode ?? this.backgroundMode,
+  );
+
+  int get backgroundValue {
+    final raw = backgroundHex.replaceFirst('#', '');
+    return int.tryParse(raw, radix: 16) == null
+        ? 0xFF111318
+        : int.parse(raw, radix: 16) | 0xFF000000;
+  }
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'subtitle': subtitle,
+    'button_label': buttonLabel,
+    'background_hex': backgroundHex,
+    'background_image_path': backgroundImagePath,
+    'logo_path': logoPath,
+    'background_mode': backgroundMode.name,
+  };
+
+  factory EventWelcomeConfig.fromJson(Map<String, dynamic>? json) {
+    final v = json ?? const <String, dynamic>{};
+    return EventWelcomeConfig(
+      title: v['title'] as String? ?? '',
+      subtitle:
+          v['subtitle'] as String? ??
+          'Welcome! Tap below to start your photo session.',
+      buttonLabel: v['button_label'] as String? ?? 'Start Session',
+      backgroundHex: v['background_hex'] as String? ?? '#111318',
+      backgroundImagePath: v['background_image_path'] as String?,
+      logoPath: v['logo_path'] as String?,
+      backgroundMode: WelcomeBackgroundMode.values.firstWhere(
+        (x) => x.name == v['background_mode'],
+        orElse: () => WelcomeBackgroundMode.color,
+      ),
+    );
+  }
+}
+
+class CustomPhotoSlot {
+  final String id;
+  final int captureOrder;
+  final double x, y, width, height;
+  final double zoom;
+  final double offsetX, offsetY;
+  final bool contain;
+
+  const CustomPhotoSlot({
+    required this.id,
+    required this.captureOrder,
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    this.zoom = 1,
+    this.offsetX = 0,
+    this.offsetY = 0,
+    this.contain = false,
+  });
+
+  CustomPhotoSlot copyWith({
+    double? x,
+    double? y,
+    double? width,
+    double? height,
+    double? zoom,
+    double? offsetX,
+    double? offsetY,
+    bool? contain,
+    int? captureOrder,
+  }) => CustomPhotoSlot(
+    id: id,
+    captureOrder: captureOrder ?? this.captureOrder,
+    x: x ?? this.x,
+    y: y ?? this.y,
+    width: width ?? this.width,
+    height: height ?? this.height,
+    zoom: zoom ?? this.zoom,
+    offsetX: offsetX ?? this.offsetX,
+    offsetY: offsetY ?? this.offsetY,
+    contain: contain ?? this.contain,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'capture_order': captureOrder,
+    'x': x,
+    'y': y,
+    'width': width,
+    'height': height,
+    'zoom': zoom,
+    'offset_x': offsetX,
+    'offset_y': offsetY,
+    'contain': contain,
+  };
+
+  factory CustomPhotoSlot.fromJson(Map<String, dynamic> v) => CustomPhotoSlot(
+    id: v['id'] as String? ?? 'slot',
+    captureOrder: (v['capture_order'] as num?)?.toInt() ?? 0,
+    x: (v['x'] as num?)?.toDouble() ?? 0,
+    y: (v['y'] as num?)?.toDouble() ?? 0,
+    width: (v['width'] as num?)?.toDouble() ?? 0.5,
+    height: (v['height'] as num?)?.toDouble() ?? 0.4,
+    zoom: (v['zoom'] as num?)?.toDouble() ?? 1,
+    offsetX: (v['offset_x'] as num?)?.toDouble() ?? 0,
+    offsetY: (v['offset_y'] as num?)?.toDouble() ?? 0,
+    contain: v['contain'] == true,
+  );
+}
+
+class EventCustomTemplate {
+  final String? artworkPath;
+  final int artworkWidth, artworkHeight;
+  final TemplateLayerMode layerMode;
+  final List<CustomPhotoSlot> slots;
+
+  const EventCustomTemplate({
+    this.artworkPath,
+    this.artworkWidth = 1200,
+    this.artworkHeight = 1800,
+    this.layerMode = TemplateLayerMode.overlay,
+    this.slots = const [],
+  });
+
+  EventCustomTemplate copyWith({
+    String? artworkPath,
+    int? artworkWidth,
+    int? artworkHeight,
+    TemplateLayerMode? layerMode,
+    List<CustomPhotoSlot>? slots,
+    bool clearArtwork = false,
+  }) => EventCustomTemplate(
+    artworkPath: clearArtwork ? null : (artworkPath ?? this.artworkPath),
+    artworkWidth: artworkWidth ?? this.artworkWidth,
+    artworkHeight: artworkHeight ?? this.artworkHeight,
+    layerMode: layerMode ?? this.layerMode,
+    slots: slots ?? this.slots,
+  );
+
+  Map<String, dynamic> toJson() => ({
+    'artwork_path': artworkPath,
+    'artwork_width': artworkWidth,
+    'artwork_height': artworkHeight,
+    'layer_mode': layerMode.name,
+    'slots': [for (final s in slots) s.toJson()],
+  });
+
+  factory EventCustomTemplate.fromJson(Map<String, dynamic>? json) {
+    final v = json ?? const <String, dynamic>{};
+    return EventCustomTemplate(
+      artworkPath: v['artwork_path'] as String?,
+      artworkWidth: (v['artwork_width'] as num?)?.toInt() ?? 1200,
+      artworkHeight: (v['artwork_height'] as num?)?.toInt() ?? 1800,
+      layerMode: TemplateLayerMode.values.firstWhere(
+        (x) => x.name == v['layer_mode'],
+        orElse: () => TemplateLayerMode.overlay,
+      ),
+      slots: [
+        for (final s in (v['slots'] as List? ?? const []))
+          CustomPhotoSlot.fromJson((s as Map).cast<String, dynamic>()),
+      ],
     );
   }
 }

@@ -136,6 +136,56 @@ void main() {
     expect(restarted.events, hasLength(2));
   });
 
+  test(
+    'welcome configuration persists per event and remains isolated',
+    () async {
+      final temp = await Directory.systemTemp.createTemp('tb_8a_welcome_');
+      addTearDown(() => temp.delete(recursive: true));
+      final controller = controllerFor(temp);
+      addTearDown(controller.dispose);
+
+      final one = event(id: 'evt_w1', title: 'One');
+      final two = event(id: 'evt_w2', title: 'Two');
+      final createdOne = await controller.createEventProfile(one);
+      final createdTwo = await controller.createEventProfile(two);
+      await controller.updateEvent(
+        createdOne.copyWith(
+          configuration: createdOne.configuration.copyWith(
+            welcome: const EventWelcomeConfig(
+              title: 'Wedding of One',
+              subtitle: 'Welcome one',
+              buttonLabel: 'Start One',
+              backgroundHex: '#112233',
+            ),
+          ),
+        ),
+      );
+      await controller.updateEvent(
+        createdTwo.copyWith(
+          configuration: createdTwo.configuration.copyWith(
+            welcome: const EventWelcomeConfig(
+              title: 'Wedding of Two',
+              subtitle: 'Welcome two',
+              buttonLabel: 'Start Two',
+              backgroundHex: '#445566',
+            ),
+          ),
+        ),
+      );
+
+      final restarted = controllerFor(temp);
+      addTearDown(restarted.dispose);
+      await restarted.loadEvents();
+      final byId = {
+        for (final e in restarted.events) e.id: e.configuration.welcome,
+      };
+      expect(byId['evt_w1']?.buttonLabel, 'Start One');
+      expect(byId['evt_w2']?.buttonLabel, 'Start Two');
+      expect(byId['evt_w1']?.backgroundHex, '#112233');
+      expect(byId['evt_w2']?.backgroundHex, '#445566');
+    },
+  );
+
   test('booth layout choice persists as event configuration', () async {
     final temp = await Directory.systemTemp.createTemp('tb_4a_config_');
     addTearDown(() => temp.delete(recursive: true));
