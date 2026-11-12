@@ -3,6 +3,15 @@ param(
   [Parameter(Mandatory=$true)][string]$PrinterName,
   [int]$Copies = 1
 )
+$preflightScript = Join-Path $PSScriptRoot "printer_preflight.ps1"
+if (-not (Test-Path $preflightScript)) { throw "printer_preflight.ps1 missing" }
+$preflight = & $preflightScript -QueueName $PrinterName | ConvertFrom-Json
+if (-not $preflight.available) {
+  throw "DNP print blocked: preflight unavailable: $($preflight.query_error)"
+}
+if ($preflight.ready -ne $true) {
+  throw "DNP print blocked: $($preflight.blockers -join ', ')"
+}
 Add-Type -AssemblyName System.Drawing
 $image = [System.Drawing.Image]::FromFile((Resolve-Path $ImagePath))
 try {

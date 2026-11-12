@@ -106,6 +106,9 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 6C-3 iPad JPEG import/upload: `docs/technical/PHASE_6C_3_IPAD_JPEG_IMPORT_AND_BRIDGE_UPLOAD.md`
 - Phase 6D-1 DNP printer readiness: `docs/technical/PHASE_6D_1_DNP_PRINTER_INTEGRATION_READINESS.md`
 - Phase 6D-2 DNP configuration alignment: `docs/technical/PHASE_6D_2_DNP_CONFIGURATION_ALIGNMENT.md`
+- Phase 6D-3 Windows DNP preflight: `docs/technical/PHASE_6D_3_WINDOWS_RUNTIME_PREFLIGHT.md`
+- Phase 6D-5 DNP pipeline readiness: `docs/technical/PHASE_6D_5_DNP_PRINT_PIPELINE_READINESS.md`
+- Phase 6D-6 Windows DNP deployment: `docs/technical/PHASE_6D_6_WINDOWS_DNP_DEPLOYMENT.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`

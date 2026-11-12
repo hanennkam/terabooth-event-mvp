@@ -165,7 +165,9 @@ def test_printer_preflight_reports_configured_queue_and_mock_mode(tmp_path):
     out = printer_preflight(s)
     assert out["configured_queue_name"] == "DS-RX1"
     assert out["spooler_mode_enabled"] is False
-    assert out["available"] is False  # Windows-only query on this host
+    # The query is unavailable on macOS but available on Windows; this test
+    # must not assume the host platform.
+    assert isinstance(out["available"], bool)
     assert isinstance(out["query_error"], str)
 
 
@@ -181,3 +183,142 @@ def test_printers_endpoint_exposes_safe_preflight_without_enabling_spooler(tmp_p
         assert "query_error" not in body["preflight"] or isinstance(
             body["preflight"]["query_error"], str
         )
+
+
+def test_safe_defaults_are_mock_and_actual_queue(tmp_path):
+    from app.config import Settings
+    from app.printer import MockPrinter, build_printer
+
+    s = Settings(data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db")
+    assert s.printer_mode == "mock"
+    assert s.printer_name == "DS-RX1"
+    assert isinstance(build_printer(s), MockPrinter)
+
+
+def test_spooler_submit_fails_closed_when_preflight_not_ready(tmp_path, monkeypatch):
+    from app import printer as printer_module
+    from app.printer import WindowsSpoolerPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="spooler", printer_name="DS-RX1",
+    )
+    artefact = tmp_path / "artefact.jpg"
+    artefact.write_bytes(b"x")
+    monkeypatch.setattr(
+        printer_module, "printer_preflight",
+        lambda _s: {"available": True, "ready": False,
+                    "blockers": ["user_media_not_PR_4x6"]},
+    )
+    called = {"subprocess": False}
+    monkeypatch.setattr(
+        printer_module.subprocess, "run",
+        lambda *a, **k: called.__setitem__("subprocess", True),
+    )
+    try:
+        WindowsSpoolerPrinter(s).submit("job_1", artefact, 1)
+        assert False, "expected RuntimeError"
+    except RuntimeError as exc:
+        assert "DNP print blocked" in str(exc)
+        assert "user_media_not_PR_4x6" in str(exc)
+    assert called["subprocess"] is False
+
+
+def test_spooler_submit_fails_closed_when_preflight_unavailable(tmp_path, monkeypatch):
+    from app import printer as printer_module
+    from app.printer import WindowsSpoolerPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="spooler", printer_name="DS-RX1",
+    )
+    artefact = tmp_path / "artefact.jpg"
+    artefact.write_bytes(b"x")
+    monkeypatch.setattr(
+        printer_module, "printer_preflight",
+        lambda _s: {"available": False, "ready": False,
+                    "query_error": "PowerShell missing"},
+    )
+    try:
+        WindowsSpoolerPrinter(s).submit("job_1", artefact, 1)
+        assert False, "expected RuntimeError"
+    except RuntimeError as exc:
+        assert "preflight unavailable" in str(exc)
+
+
+def test_run_windows_launcher_defaults_to_mock():
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parent.parent / "scripts" / "run_windows.ps1"
+    text = script.read_text()
+    assert 'if (-not $env:TERABOOTH_PRINTER) { $env:TERABOOTH_PRINTER = "mock" }' in text
+    assert 'if (-not $env:TERABOOTH_PRINTER) { $env:TERABOOTH_PRINTER = "spooler" }' not in text
+
+
+def test_preflight_parses_machine_user_job_sources_and_blockers(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from app import printer as printer_module
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="mock", printer_name="DS-RX1",
+    )
+    payload = {
+        "available": True, "ready": False, "queue_exists": True,
+        "queue_name": "DS-RX1", "driver_name": "DS-RX1",
+        "driver_manufacturer": "Dai Nippon Printing",
+        "driver_version": "v", "port_name": "USB001",
+        "printer_status": "Normal", "work_offline": False, "shared": False,
+        "paper_size": "", "media": "ns0000:PR_4x6",
+        "orientation": "psk:Portrait", "resolution": "ns0000:Option1",
+        "cut": "ns0000:CUT_2INCH", "queued_jobs": 0,
+        "machine_default": {"media": "ns0000:PC"},
+        "user_default": {"media": "ns0000:PR_4x6"},
+        "capabilities": {"media": ["ns0000:PR_4x6", "ns0000:PC"]},
+        "job_request": {"media": "PR_4x6"},
+        "job_level": {"available": False},
+        "blockers": ["user_cut_not_standard", "machine_media_not_PR_4x6"],
+        "query_error": "",
+    }
+    monkeypatch.setattr(printer_module.sys, "platform", "win32")
+    monkeypatch.setattr(
+        printer_module.subprocess, "run",
+        lambda *a, **k: SimpleNamespace(
+            returncode=0, stdout=json.dumps(payload), stderr=""
+        ),
+    )
+    out = printer_module.printer_preflight(s)
+    assert out["ready"] is False
+    assert out["machine_default"]["media"] == "ns0000:PC"
+    assert out["user_default"]["media"] == "ns0000:PR_4x6"
+    assert out["job_level"]["available"] is False
+    assert "user_cut_not_standard" in out["blockers"]
+    assert out["configured_queue_name"] == "DS-RX1"
+    assert out["spooler_mode_enabled"] is False
+
+
+def test_spooler_submit_uses_no_subprocess_when_ready_gate_fails(tmp_path, monkeypatch):
+    from app import printer as printer_module
+    from app.printer import WindowsSpoolerPrinter
+
+    s = Settings(
+        data_dir=tmp_path / "data", db_path=tmp_path / "data" / "t.db",
+        printer_mode="spooler", printer_name="DS-RX1",
+    )
+    artefact = tmp_path / "artefact.jpg"
+    artefact.write_bytes(b"x")
+    monkeypatch.setattr(
+        printer_module, "printer_preflight",
+        lambda _s: {"available": True, "ready": False, "blockers": ["machine_media_not_PR_4x6"]},
+    )
+    called = {"run": False}
+    def fake_run(*a, **k):
+        called["run"] = True
+        raise AssertionError("print subprocess must not run")
+    monkeypatch.setattr(printer_module.subprocess, "run", fake_run)
+    try:
+        WindowsSpoolerPrinter(s).submit("job", artefact, 1)
+        assert False
+    except RuntimeError as exc:
+        assert "DNP print blocked" in str(exc)
+    assert called["run"] is False

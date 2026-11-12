@@ -28,7 +28,7 @@ if (Test-Path ".env") {
 if (-not (Test-Path ".\.venv\Scripts\python.exe")) {
     throw "Run scripts\install_windows.ps1 first."
 }
-if (-not $env:TERABOOTH_PRINTER) { $env:TERABOOTH_PRINTER = "spooler" }
+if (-not $env:TERABOOTH_PRINTER) { $env:TERABOOTH_PRINTER = "mock" }
 if (-not $env:TERABOOTH_PRINTER_NAME) { $env:TERABOOTH_PRINTER_NAME = "DS-RX1" }
 if (-not $env:TERABOOTH_DATA_DIR) { $env:TERABOOTH_DATA_DIR = (Join-Path (Get-Location) "data") }
 if (-not $env:TERABOOTH_API_TOKEN -or $env:TERABOOTH_API_TOKEN -match "change-me") {

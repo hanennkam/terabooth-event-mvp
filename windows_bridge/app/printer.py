@@ -115,6 +115,17 @@ class WindowsSpoolerPrinter:
     def submit(self, job_id: str, artefact: Path, copies: int) -> PrintHandle:
         if not self.script.exists():
             raise RuntimeError("print_image.ps1 missing")
+        preflight = printer_preflight(self.settings)
+        if not preflight.get("available"):
+            raise RuntimeError(
+                "DNP print blocked: printer preflight unavailable: "
+                + str(preflight.get("query_error") or "unknown error")
+            )
+        if preflight.get("ready") is not True:
+            blockers = preflight.get("blockers") or ["configuration_not_ready"]
+            raise RuntimeError(
+                "DNP print blocked: " + ", ".join(str(b) for b in blockers)
+            )
         cmd = [
             "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
             "-File", str(self.script),
@@ -160,6 +171,13 @@ def printer_preflight(settings: Settings) -> dict:
         "resolution": "",
         "cut": "",
         "queued_jobs": 0,
+        "ready": False,
+        "blockers": [],
+        "machine_default": None,
+        "user_default": None,
+        "capabilities": None,
+        "job_request": None,
+        "job_level": None,
         "query_error": "",
     }
     if not sys.platform.startswith("win"):

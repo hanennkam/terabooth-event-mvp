@@ -124,7 +124,7 @@ def test_unicode_paths_zip_and_manifest_do_not_leak_paths(tmp_path):
         zip_path.unlink(missing_ok=True)
 
     persist_guest_manifest(job, s)
-    text = (job_dir / "manifest.json").read_text()
+    text = (job_dir / "manifest.json").read_text(encoding="utf-8")
     assert "Café" in text
     assert str(tmp_path) not in text
     assert "path" not in text

@@ -1689,3 +1689,52 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
   leave cut disabled unless firmware/template require it.
 - 63 Bridge tests pass; no print/queue/auth/data changes.
 - Report: `docs/technical/PHASE_6D_2_DNP_CONFIGURATION_ALIGNMENT.md`.
+
+
+---
+
+## Phase 6D-3 — Windows DNP runtime preflight (2026-11-12)
+
+**BLOCKED — media still PC 6x4, env queue old, Bridge preflight not live.**
+
+- Preflight script ran: DS-RX1/DS-RX1/USB001 Normal, 0 jobs, PC 6x4, Portrait,
+  Option1, CUT_STANDARD.
+- Windows .env: mock + DNP DS-RX1HS (old override); running /v1/printers lacks
+  new preflight object.
+- No print/spooler/queue/driver changes; 63 Bridge tests pass on Mac.
+- Operator must fix .env/media, restart Bridge preserving mock, and rerun
+  preflight; no physical print authorized.
+- Report: `docs/technical/PHASE_6D_3_WINDOWS_RUNTIME_PREFLIGHT.md`.
+
+
+---
+
+## Phase 6D-5 — DNP print pipeline readiness (2026-11-12)
+
+**PASS source/tests; physical BLOCKED; MockPrinter active.**
+
+- Root cause: PrintDocument set page geometry only; DNP media/cut came from
+  ambiguous machine/user DEVMODE. Old preflight read only machine configuration.
+- Added machine/user/capability preflight, job-level "unavailable" semantics, and
+  fail-closed spooler gate in adapter and print script; standard cut required.
+- run_windows.ps1 now defaults mock; DS-RX1 queue default; .env.example added.
+- 69 Bridge tests pass; no print/queue/preferences/auth/camera changes.
+- Windows machine ticket PC / user cut CUT_2INCH still block; operator alignment
+  and explicit physical authorization remain.
+- Report: `docs/technical/PHASE_6D_5_DNP_PRINT_PIPELINE_READINESS.md`.
+
+
+---
+
+## Phase 6D-6 — Windows DNP deployment (2026-11-13)
+
+**PASS deployment/preflight; physical print NOT TESTED.**
+
+- Deployed phase6d6c bundle (SHA verified), preserved .env/data, Windows tests 69.
+- Aligned per-user cut to CUT_STANDARD via supported helper with backup; machine
+  already PR4x6/standard.
+- Preflight/API ready=true: DS-RX1/USB001/Normal, both tickets PR4x6/Portrait/
+  Option1/CUT_STANDARD, zero jobs, MockPrinter active.
+- Capabilities parse fixed; job-level unavailable by design.
+- No print/spooler/queue/auth/camera changes; physical calibration pending.
+- Report: `docs/technical/PHASE_6D_6_WINDOWS_DNP_DEPLOYMENT.md`.
