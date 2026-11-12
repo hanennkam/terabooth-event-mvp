@@ -1787,3 +1787,19 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Real XPS path fails closed on private cut mismatch; no physical print.
 - Mac/Windows tests 74; production mock/spooler off; no customer/camera changes.
 - Report: `docs/technical/PHASE_6G_XPS_BACKEND_VERIFICATION.md`.
+
+
+---
+
+## Phase 6H — DNP vendor mechanism discovery (2026-11-13)
+
+**BLOCKED at missing HFP/SDK; no print.**
+
+- Installed evidence: DS-RX1 driver only; no HFP directories/exe/service/uninstall
+  entry, no DNP SDK/utility.
+- Official HFP supports DS-RX1HS 4x6/2x6, copies, archive; selected as supported
+  path once installed. Existing HotFolderPrinter unverified/copies/archive gaps.
+- No code/test rerun; Phase 6G 74 tests reused. Production mock/spooler off.
+- Shortest path: install/configure HFP 4x6 folder, adapt/test, one authorized
+  calibration.
+- Report: `docs/technical/PHASE_6H_DNP_VENDOR_MECHANISM_DISCOVERY.md`.
