@@ -381,9 +381,13 @@ final class CascableCameraAdapter: NSObject, FlutterStreamHandler, CameraDiscove
     }
 
     private static func isJPEG(_ data: Data) -> Bool {
-        guard data.count >= 3 else { return false }
-        let bytes = [UInt8](data.prefix(3))
-        return bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF
+        guard data.count >= 4 else { return false }
+        let bytes = [UInt8](data)
+        return bytes[0] == 0xFF &&
+            bytes[1] == 0xD8 &&
+            bytes[2] == 0xFF &&
+            bytes[bytes.count - 2] == 0xFF &&
+            bytes[bytes.count - 1] == 0xD9
     }
 
     private func completeCapture(pending: PendingCapture, data: Data) {

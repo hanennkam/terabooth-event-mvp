@@ -15,7 +15,7 @@ import CascableCore
     let licenseResult = CascableCoreLicenseVerification.apply(license: CascableCoreLicense.data)
     let licenseApplied = licenseResult == .success
     NSLog("CASCABLE_DEMO_LICENSE_RESULT=\(licenseResult.rawValue) configured=\(CascableCoreLicense.isConfigured)")
-    CascableCoreDemoProbe.shared.start(licenseApplied: licenseApplied)
+    CascableCoreDemoProbe.shared.prepare(licenseApplied: licenseApplied)
 #endif
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

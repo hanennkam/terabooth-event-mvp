@@ -89,12 +89,17 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 3A-2K capability preflight: `docs/technical/PHASE_3A_2K_CLEAN_USB_CAPABILITY_PREFLIGHT.md`
 - Phase 3A-2L Live View cleanup correction: `docs/technical/PHASE_3A_2L_LIVE_VIEW_LIFECYCLE_CLEANUP_CORRECTION.md`
 - Phase 3A-2M Live View hardware verification: `docs/technical/PHASE_3A_2M_LIVE_VIEW_LIFECYCLE_HARDWARE_VERIFICATION.md`
+- Phase 3A-3A iPad deployment/EOS 60D preflight: `docs/technical/PHASE_3A_3A_IPAD_DEPLOYMENT_EOS60D_PREFLIGHT.md`
+- Phase 3A-3B iPad Personal Team signing: `docs/technical/PHASE_3A_3B_IPAD_PERSONAL_TEAM_SIGNING.md`
+- Phase 3A-3C safe iPad preflight probe: `docs/technical/PHASE_3A_3C_SAFE_IPAD_CAMERA_PREFLIGHT.md`
+- Phase 3A-3D JPEG-only camera contract: `docs/technical/PHASE_3A_3D_JPEG_ONLY_CAMERA_CONTRACT.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`
 - Phase 5A-1 Windows portability/low-resource foundation: `docs/technical/PHASE_5A_1_WINDOWS_BRIDGE_PORTABILITY_AND_LOW_RESOURCE_FOUNDATION.md`
 - Phase 5A-2 Windows runtime validation: `docs/technical/PHASE_5A_2_ACTUAL_WINDOWS_RUNTIME_VALIDATION.md`
 - Phase 5A-2 disposable guest phone smoke: `docs/technical/PHASE_5A_2_DISPOSABLE_GUEST_PHONE_SMOKE.md`
+- Phase 5B-1 DNP printing readiness: `docs/technical/PHASE_5B_1_DNP_PRINTING_READINESS.md`
 - Camera pipeline reliability: `docs/technical/CAMERA_PIPELINE_RELIABILITY.md`
 - Phase 1D reliability hardening / iPad checklist: `docs/technical/PHASE_1D_RELIABILITY_HARDENING.md`
 - Phase 1E deployment readiness: `docs/technical/PHASE_1E_DEPLOYMENT_READINESS.md`

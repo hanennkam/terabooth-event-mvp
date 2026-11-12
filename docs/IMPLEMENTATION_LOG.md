@@ -1372,3 +1372,98 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - macOS self-test passed all checks and cleaned its temp data. Actual Windows
   execution and physical phone scan remain pending.
 - Report: `docs/technical/PHASE_5A_2_DISPOSABLE_GUEST_PHONE_SMOKE.md`.
+
+
+---
+
+## Phase 3A-3A — Physical iPad deployment/EOS 60D preflight (2026-11-12)
+
+**BLOCKED — no iPad, no signing identity, unsafe demo auto-shutter.**
+
+- Xcode device list: no iPad; USB inventory: no iPad.
+- `security find-identity -p codesigning -v`: 0 valid identities; demo target has
+  no DEVELOPMENT_TEAM.
+- Demo scheme builds only for simulator; bundle `se.cascable.CascableCoreiOSDemo`
+  contains the demo licence; production bundle `com.terabooth.teraboothIpad`
+  contains no licence.
+- Static audit found `CascableCoreDemoProbe` enables simulated camera, starts
+  discovery/Live View and invokes one-shot shutter after connect. Build was not
+  launched.
+- Zero shutter/capture/transfer; no source changes.
+- Full report: `docs/technical/PHASE_3A_3A_IPAD_DEPLOYMENT_EOS60D_PREFLIGHT.md`.
+
+
+---
+
+## Phase 3A-3B — iPad Personal Team signing audit (2026-11-12)
+
+**BLOCKED — demo bundle ID cannot be registered to Personal Team; no install/launch.**
+
+- Physical iPad iPad15,7 iPadOS 26.6 connected; simulator not used for device
+  build.
+- Applied existing Personal Team + automatic signing only to
+  `Debug-CascableDemo`; production configs untouched.
+- Device-only build failed: `se.cascable.CascableCoreiOSDemo` is unavailable for
+  registration to the Personal Team; no matching provisioning profile.
+- Preserved demo bundle ID and licence; production simulator build remains
+  `com.terabooth.teraboothIpad` with no licence.
+- No install, launch, camera, shutter or transfer. Demo probe auto-shutter
+  remains a blocker and was not launched.
+- Full report: `docs/technical/PHASE_3A_3B_IPAD_PERSONAL_TEAM_SIGNING.md`.
+
+
+---
+
+## Phase 3A-3C — Safe iPad camera preflight probe (2026-11-12)
+
+**PASS source/static; physical preflight still NOT TESTED/signing blocked.**
+
+- Replaced demo auto-discovery/auto-shutter probe with explicit USB-only
+  preflight UI: discovery, connect, read-only properties/storage, optional Live
+  View, stop and disconnect.
+- No shutter/capture/transfer APIs, no transfer handler, no simulated plugin
+  enable (explicitly disabled), no automatic launch actions.
+- AppDelegate now only calls `prepare`; production/MockCameraService untouched.
+- Added 4 static safety tests; Flutter 128 pass; demo simulator build and
+  production simulator build pass; production licence absent.
+- Physical device remains blocked by demo bundle-ID provisioning.
+- Full report: `docs/technical/PHASE_3A_3C_SAFE_IPAD_CAMERA_PREFLIGHT.md`.
+
+
+---
+
+## Phase 3A-3D — JPEG-only camera contract/pipeline audit (2026-11-12)
+
+**PASS source/automated; physical capture not tested.**
+
+- Traced Cascable `.original` -> CameraService -> CameraPipeline ->
+  ImageValidator/Ingestor -> StorageService -> BoothController -> Bridge.
+- Added JPEG EOI enforcement (native and Flutter), SHA-256 before/after storage
+  and metadata persistence; existing atomic original preservation retained.
+- Added 9 synthetic contract tests: valid JPEG, exact bytes/hash, CR2/RAW, PNG,
+  JPEG-like invalid, truncated, empty, dimensions, duplicate capture, and
+  `.original`-only native source.
+- Flutter 137 tests, Python 55 tests, analyze clean, demo/production simulator
+  builds pass; production licence absent.
+- Remaining: signed iPad deployment/camera capture/Live View/DNP not physically
+  validated.
+- Report: `docs/technical/PHASE_3A_3D_JPEG_ONLY_CAMERA_CONTRACT.md`.
+
+
+---
+
+## Phase 5B-1 — DNP printing readiness (2026-11-12)
+
+**PASS audit/automated; physical DNP NOT TESTED.**
+
+- Audited Printer Protocol, mock/spooler/hotfolder adapters, queue states,
+  template output, print script, copies and failure behavior.
+- Added restart recovery: printing->unknown; pre-submit open jobs->failed; no
+  automatic resubmission; attempts recorded.
+- Added mock copy tracking and 6 readiness tests covering 4x6 output, copies,
+  invalid image, duplicate idempotency, printer failure, hash preservation and
+  restart behavior.
+- Bridge 61 tests, Flutter 137 tests, analyze clean. No physical print, driver,
+  camera or Flutter change.
+- Physical DNP test checklist in
+  `docs/technical/PHASE_5B_1_DNP_PRINTING_READINESS.md`.

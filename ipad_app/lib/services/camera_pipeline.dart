@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models.dart';
@@ -280,6 +281,15 @@ class ImageValidator {
         'only JPEG or PNG image data is accepted',
       );
     }
+    if (isJpeg &&
+        (bytes.length < 2 ||
+            bytes[bytes.length - 2] != 0xFF ||
+            bytes[bytes.length - 1] != 0xD9)) {
+      throw const CameraPipelineException(
+        CameraErrorCodes.invalidImage,
+        'JPEG is truncated or missing its end-of-image marker',
+      );
+    }
     if (isPng && !allowPng) {
       throw const CameraPipelineException(
         CameraErrorCodes.unsupportedImage,
@@ -477,6 +487,7 @@ class ImageIngestor {
       image.bytes,
       allowPng: allowPng,
     );
+    final sourceHash = sha256.convert(image.bytes).toString();
     String? path;
     try {
       path = await storage.saveOriginal(
@@ -494,12 +505,20 @@ class ImageIngestor {
         savedBytes,
         allowPng: allowPng,
       );
+      final savedHash = sha256.convert(savedBytes).toString();
+      if (savedHash != sourceHash) {
+        throw CameraPipelineException(
+          CameraErrorCodes.captureFailed,
+          'stored original hash does not match received bytes',
+          captureId: captureId,
+        );
+      }
       if (savedValidation.width != validation.width ||
           savedValidation.height != validation.height) {
-        throw const CameraPipelineException(
+        throw CameraPipelineException(
           CameraErrorCodes.captureFailed,
           'saved image dimensions changed after write',
-          captureId: null,
+          captureId: captureId,
         );
       }
     } on CameraPipelineException {
@@ -535,6 +554,7 @@ class ImageIngestor {
       capturedAt: image.capturedAt,
       path: path,
       captureId: captureId,
+      sha256: sourceHash,
       orientation: validation.orientation,
     );
   }

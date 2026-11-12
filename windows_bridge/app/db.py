@@ -299,6 +299,23 @@ def get_delivery(path: Path, token: str) -> dict[str, Any] | None:
     return dict(r) if r else None
 
 
+def jobs_in_states(path: Path, states: set[str], limit: int = 500) -> list[dict[str, Any]]:
+    placeholders = ",".join("?" for _ in states)
+    with db(path) as conn:
+        rows = conn.execute(
+            f"SELECT * FROM jobs WHERE state IN ({placeholders}) ORDER BY created_at LIMIT ?",
+            (*sorted(states), limit),
+        ).fetchall()
+        out = []
+        for row in rows:
+            job = dict(row)
+            job["images"] = [dict(r) for r in conn.execute(
+                "SELECT * FROM images WHERE job_id=? ORDER BY created_at", (job["id"],)
+            )]
+            out.append(job)
+    return out
+
+
 def list_jobs(path: Path, limit: int = 50) -> list[dict[str, Any]]:
     with db(path) as conn:
         rows = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()

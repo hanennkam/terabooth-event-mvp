@@ -117,7 +117,15 @@ void main() {
 
   test('GIF is fetched independently after print completion', () async {
     final temp = await Directory.systemTemp.createTemp('terabooth_gif_');
-    addTearDown(() => temp.delete(recursive: true));
+    addTearDown(() async {
+      // A background GIF callback may finish after the test body; cleanup must
+      // be idempotent rather than failing on an already-removed temp dir.
+      try {
+        await temp.delete(recursive: true);
+      } on PathNotFoundException {
+        // Another async teardown already removed it.
+      }
+    });
     final gif = gifFixture;
     final posts = <String>[];
     final controller = controllerFor(

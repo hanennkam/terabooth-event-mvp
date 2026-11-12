@@ -569,8 +569,50 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 db.add_gif_attempt(settings.db_path, job_id, "stale processing claim released")
             schedule(build_gif(job_id))
 
+    async def recover_print_jobs() -> None:
+        """Never auto-resubmit a job whose physical state is uncertain.
+
+        A queued job is complete only in the pre-submit sense; after a process
+        restart the worker is gone. Mark it failed and let the operator choose
+        Reprint explicitly. A printing job may have reached the spooler, so it
+        is marked unknown, never completed or retried.
+        """
+        for job in db.jobs_in_states(
+            settings.db_path,
+            {"received", "validated", "composing", "queued", "printing"},
+        ):
+            if job["state"] == "printing":
+                db.update_job(
+                    settings.db_path,
+                    job["id"],
+                    state="unknown",
+                    completion="unknown",
+                    error="bridge restarted while printing; verify physical output",
+                )
+                db.add_attempt(
+                    settings.db_path,
+                    job["id"],
+                    "restart_unknown",
+                    "do not auto-retry; verify physical print",
+                )
+            else:
+                db.update_job(
+                    settings.db_path,
+                    job["id"],
+                    state="failed",
+                    completion="unknown",
+                    error="bridge restarted before print submission; use Reprint explicitly",
+                )
+                db.add_attempt(
+                    settings.db_path,
+                    job["id"],
+                    "restart_failed",
+                    "no automatic print resubmission",
+                )
+
     @app.on_event("startup")
-    async def _startup_recover_gifs() -> None:
+    async def _startup_recover() -> None:
+        await recover_print_jobs()
         schedule(recover_gif_jobs())
 
     @app.on_event("shutdown")

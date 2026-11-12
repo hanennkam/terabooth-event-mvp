@@ -11,6 +11,9 @@ class CapturedImage {
   final DateTime capturedAt;
   final String? captureId;
 
+  /// SHA-256 of the exact stored original bytes, when ingestion completed.
+  final String? sha256;
+
   /// EXIF orientation (1-8). Bytes are never modified to apply it.
   final int orientation;
 
@@ -22,6 +25,7 @@ class CapturedImage {
     required this.capturedAt,
     this.path,
     this.captureId,
+    this.sha256,
     this.orientation = 1,
   });
 
@@ -33,6 +37,8 @@ class CapturedImage {
     capturedAt: capturedAt,
     path: value,
     captureId: captureId,
+    sha256: sha256,
+    orientation: orientation,
   );
 
   CapturedImage withCaptureId(String value) => CapturedImage(
@@ -43,6 +49,8 @@ class CapturedImage {
     capturedAt: capturedAt,
     path: path,
     captureId: value,
+    sha256: sha256,
+    orientation: orientation,
   );
 }
 

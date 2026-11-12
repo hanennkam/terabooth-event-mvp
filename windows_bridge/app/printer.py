@@ -38,9 +38,11 @@ class MockPrinter:
     def __init__(self, settings: Settings):
         self.settings = settings
         self._submitted: dict[str, float] = {}
+        self.submitted_copies: list[int] = []
 
     def submit(self, job_id: str, artefact: Path, copies: int) -> PrintHandle:
         self.settings.outbox_dir.mkdir(parents=True, exist_ok=True)
+        self.submitted_copies.append(copies)
         dest = self.settings.outbox_dir / f"{job_id}.jpg"
         shutil.copyfile(artefact, dest)
         self._submitted[job_id] = time.monotonic()

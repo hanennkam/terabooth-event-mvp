@@ -528,6 +528,7 @@ class StorageService {
                   DateTime.now(),
               captureId: capture['capture_id'] as String?,
               orientation: (capture['orientation'] as num?)?.toInt() ?? 1,
+              sha256: capture['sha256'] as String?,
             ),
           );
         }

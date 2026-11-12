@@ -1048,6 +1048,7 @@ class BoothController extends ChangeNotifier {
               'width': photos[i].width,
               'height': photos[i].height,
               'orientation': photos[i].orientation,
+              'sha256': photos[i].sha256,
               'captured_at': photos[i].capturedAt.toIso8601String(),
             },
         ],
