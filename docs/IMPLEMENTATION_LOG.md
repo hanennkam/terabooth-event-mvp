@@ -1357,3 +1357,18 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Mac-side regression remains 53 bridge tests, 124 Flutter tests, clean analyze
   and simulator build. These are not Windows evidence.
 - Validation report: `docs/technical/PHASE_5A_2_ACTUAL_WINDOWS_RUNTIME_VALIDATION.md`.
+
+
+---
+
+## Phase 5A-2 — Disposable guest phone smoke tooling (2026-11-12)
+
+- Added `validation/run_guest_phone_smoke.ps1` and
+  `validation/guest_phone_smoke.py` for an isolated port-8788 guest test.
+- Fresh temp DB/data, independent random secrets, mock printer, no production
+  DB/port-8787 changes, no secrets printed.
+- Creates a real 2-photo duo job, obtains the guest token, checks page/manifest/
+  originals/strip/ZIP/GIF/QR and prints only the guest URL/instructions.
+- macOS self-test passed all checks and cleaned its temp data. Actual Windows
+  execution and physical phone scan remain pending.
+- Report: `docs/technical/PHASE_5A_2_DISPOSABLE_GUEST_PHONE_SMOKE.md`.

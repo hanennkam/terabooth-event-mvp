@@ -94,6 +94,7 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`
 - Phase 5A-1 Windows portability/low-resource foundation: `docs/technical/PHASE_5A_1_WINDOWS_BRIDGE_PORTABILITY_AND_LOW_RESOURCE_FOUNDATION.md`
 - Phase 5A-2 Windows runtime validation: `docs/technical/PHASE_5A_2_ACTUAL_WINDOWS_RUNTIME_VALIDATION.md`
+- Phase 5A-2 disposable guest phone smoke: `docs/technical/PHASE_5A_2_DISPOSABLE_GUEST_PHONE_SMOKE.md`
 - Camera pipeline reliability: `docs/technical/CAMERA_PIPELINE_RELIABILITY.md`
 - Phase 1D reliability hardening / iPad checklist: `docs/technical/PHASE_1D_RELIABILITY_HARDENING.md`
 - Phase 1E deployment readiness: `docs/technical/PHASE_1E_DEPLOYMENT_READINESS.md`

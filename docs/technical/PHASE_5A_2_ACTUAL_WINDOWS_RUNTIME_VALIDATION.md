@@ -271,3 +271,17 @@ Do not install DNP drivers or claim physical printer validation.
 
 **Stopped after Phase 5A-2 preparation. No Phase 5B or physical printer work
 was started.**
+
+
+---
+
+## Validation tooling addendum — disposable guest smoke
+
+A separate disposable guest phone smoke script now exists:
+
+- `windows_bridge/validation/run_guest_phone_smoke.ps1`
+- `windows_bridge/validation/guest_phone_smoke.py`
+
+Local macOS self-test passed all guest checks and cleanup. Actual Windows
+execution and the physical phone scan remain **PENDING**. See
+`PHASE_5A_2_DISPOSABLE_GUEST_PHONE_SMOKE.md`.
