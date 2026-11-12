@@ -39,6 +39,8 @@ dependencies:
   crypto: ^3.0.8
   qr_flutter: ^4.1.0
   image_picker: ^1.2.4
+  flutter_secure_storage: ^11.2.0
+  file_picker: ^13.3.3
 
 dev_dependencies:
   flutter_test:

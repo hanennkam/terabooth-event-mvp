@@ -69,7 +69,7 @@ powershell -ExecutionPolicy Bypass -File scripts\install_windows.ps1
 
 ```dotenv
 TERABOOTH_PRINTER=spooler
-TERABOOTH_PRINTER_NAME=DNP DS-RX1HS
+TERABOOTH_PRINTER_NAME=DS-RX1
 TERABOOTH_API_TOKEN=<long-random-token>
 TERABOOTH_DELIVERY_SECRET=<long-random-secret>
 TERABOOTH_PUBLIC_BASE_URL=http://<windows-lan-ip>:8787

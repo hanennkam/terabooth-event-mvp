@@ -8,6 +8,7 @@ import 'screens/print_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/bridge_client.dart';
+import 'services/bridge_token_store.dart';
 import 'services/camera_service.dart';
 import 'services/native_camera_service.dart';
 import 'services/storage_service.dart';
@@ -38,7 +39,7 @@ class _TeraboothAppState extends State<TeraboothApp>
     );
     const bridgeUrl = String.fromEnvironment(
       'TERABOOTH_BRIDGE_URL',
-      defaultValue: 'http://192.168.8.50:8787',
+      defaultValue: 'http://192.168.8.192:8787',
     );
     const apiToken = String.fromEnvironment(
       'TERABOOTH_API_TOKEN',
@@ -53,6 +54,7 @@ class _TeraboothAppState extends State<TeraboothApp>
         baseUrl: bridgeUrl,
         token: apiToken.isEmpty ? null : apiToken,
       ),
+      bridgeTokenStore: KeychainBridgeTokenStore(),
     );
     unawaited(
       controller.loadEvents().then((_) async {

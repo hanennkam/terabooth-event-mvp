@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -132,6 +134,61 @@ class WindowsSpoolerPrinter:
     def health(self) -> dict:
         return {"name": self.settings.printer_name, "state": "unknown",
                 "mode": "spooler", "note": "UNVERIFIED until physical DNP print"}
+
+
+def printer_preflight(settings: Settings) -> dict:
+    """Read-only Windows queue/driver/media diagnostics.
+
+    This never submits a print job and works while the active adapter is mock.
+    """
+    result = {
+        "available": False,
+        "queue_exists": False,
+        "configured_queue_name": settings.printer_name,
+        "spooler_mode_enabled": settings.printer_mode == "spooler",
+        "queue_name": "",
+        "driver_name": "",
+        "driver_manufacturer": "",
+        "driver_version": "",
+        "port_name": "",
+        "printer_status": "",
+        "work_offline": False,
+        "shared": False,
+        "paper_size": "",
+        "media": "",
+        "orientation": "",
+        "resolution": "",
+        "cut": "",
+        "queued_jobs": 0,
+        "query_error": "",
+    }
+    if not sys.platform.startswith("win"):
+        result["query_error"] = "Windows PowerShell preflight unavailable on this host"
+        return result
+    script = Path(__file__).resolve().parent.parent / "scripts" / "printer_preflight.ps1"
+    if not script.exists():
+        result["query_error"] = "printer_preflight.ps1 missing"
+        return result
+    try:
+        proc = subprocess.run(
+            [
+                "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                "-File", str(script), "-QueueName", settings.printer_name,
+            ],
+            capture_output=True, text=True, timeout=20,
+        )
+        if proc.returncode != 0:
+            result["query_error"] = (proc.stderr or proc.stdout or "preflight failed").strip()
+            return result
+        data = json.loads(proc.stdout)
+        if isinstance(data, dict):
+            result.update(data)
+        result["configured_queue_name"] = settings.printer_name
+        result["spooler_mode_enabled"] = settings.printer_mode == "spooler"
+        return result
+    except Exception as exc:  # noqa: BLE001
+        result["query_error"] = str(exc)
+        return result
 
 
 def build_printer(settings: Settings) -> Printer:

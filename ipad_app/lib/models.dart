@@ -64,6 +64,7 @@ class PrintJob {
   final String? reprintOf;
   final String gifState;
   final String printerMode;
+  final List<String> imageHashes;
 
   const PrintJob({
     required this.id,
@@ -75,6 +76,7 @@ class PrintJob {
     this.reprintOf,
     this.gifState = 'unknown',
     this.printerMode = 'unknown',
+    this.imageHashes = const [],
   });
 
   bool get isTerminal =>
@@ -90,6 +92,11 @@ class PrintJob {
     reprintOf: json['reprint_of'] as String?,
     gifState: (json['gif_state'] as String?) ?? 'unknown',
     printerMode: (json['printer_mode'] as String?) ?? 'unknown',
+    imageHashes: [
+      for (final image in (json['images'] as List? ?? const []))
+        if (image is Map && image['sha256'] is String)
+          image['sha256'] as String,
+    ],
   );
 }
 

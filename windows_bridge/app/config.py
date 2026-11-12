@@ -26,7 +26,7 @@ class Settings:
     data_dir: Path
     db_path: Path
     printer_mode: str = "mock"          # mock | spooler | hotfolder
-    printer_name: str = "DNP DS-RX1HS"
+    printer_name: str = "DS-RX1"
     hot_folder: Path | None = None
     hot_folder_archive: Path | None = None
     api_token: str | None = None
@@ -122,7 +122,7 @@ def load_settings() -> Settings:
         data_dir=data_dir,
         db_path=_path(os.getenv("TERABOOTH_DB_PATH"), data_dir / "terabooth.db"),
         printer_mode=os.getenv("TERABOOTH_PRINTER", "mock").lower(),
-        printer_name=os.getenv("TERABOOTH_PRINTER_NAME", "DNP DS-RX1HS"),
+        printer_name=os.getenv("TERABOOTH_PRINTER_NAME", "DS-RX1"),
         hot_folder=_path(hot, Path(hot)) if hot else None,
         hot_folder_archive=_path(archive, Path(archive)) if archive else None,
         api_token=os.getenv("TERABOOTH_API_TOKEN") or None,

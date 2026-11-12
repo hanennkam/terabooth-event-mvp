@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../booth_controller.dart';
 import '../theme/tb_theme.dart';
 import '../widgets/tb_ui.dart';
+import 'jpeg_import_test_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final BoothController controller;
@@ -14,17 +15,21 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _bridge;
+  late final TextEditingController _token;
+  bool _obscureToken = true;
   String? _formError;
 
   @override
   void initState() {
     super.initState();
     _bridge = TextEditingController(text: widget.controller.bridge.baseUrl);
+    _token = TextEditingController();
   }
 
   @override
   void dispose() {
     _bridge.dispose();
+    _token.dispose();
     super.dispose();
   }
 
@@ -36,11 +41,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _formError = null);
     await widget.controller.saveBridgeUrl(url);
+    final token = _token.text.trim();
+    if (token.isNotEmpty) {
+      await widget.controller.saveBridgeToken(token);
+      _token.clear();
+    }
     if (!mounted) return;
     _bridge.text = widget.controller.bridge.baseUrl;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Bridge URL saved')));
+    ).showSnackBar(const SnackBar(content: Text('Bridge settings saved')));
+  }
+
+  Future<void> _clearToken() async {
+    await widget.controller.clearBridgeToken();
+    if (!mounted) return;
+    _token.clear();
+    setState(() => _obscureToken = true);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Bridge token cleared')));
   }
 
   Future<void> _testConnection() async {
@@ -51,6 +71,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _formError = null);
     await widget.controller.saveBridgeUrl(url);
+    final token = _token.text.trim();
+    if (token.isNotEmpty) {
+      await widget.controller.saveBridgeToken(token);
+      _token.clear();
+    }
     await widget.controller.checkBridge();
   }
 
@@ -119,105 +144,170 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _settingsColumn(BoothController c) {
-    return Column(
-      children: [
-        TbCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TbEyebrow('Connection'),
-              const SizedBox(height: 10),
-              Text(
-                'Windows Bridge',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'The iPad and guest phones must be able to reach this address on the local network.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _bridge,
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: 'Bridge URL',
-                  hintText: 'http://192.168.8.50:8787',
-                  errorText: _formError,
-                  prefixIcon: const Icon(Icons.link_rounded),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TbCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const TbEyebrow('Connection'),
+                const SizedBox(height: 10),
+                Text(
+                  'Windows Bridge',
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                onSubmitted: (_) => _testConnection(),
-              ),
-              const SizedBox(height: TbSpace.md),
-              Row(
-                children: [
-                  TbPrimaryButton(
-                    label: 'Save',
-                    icon: Icons.check_rounded,
-                    onPressed: _save,
+                const SizedBox(height: 6),
+                Text(
+                  'The iPad and guest phones must be able to reach this address on the local network.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _bridge,
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    labelText: 'Bridge URL',
+                    hintText: 'http://192.168.8.192:8787',
+                    errorText: _formError,
+                    prefixIcon: const Icon(Icons.link_rounded),
                   ),
-                  const SizedBox(width: TbSpace.sm),
-                  TbSecondaryButton(
-                    label: c.bridgeChecking ? 'Testing…' : 'Test connection',
-                    icon: Icons.wifi_tethering_rounded,
-                    onPressed: c.bridgeChecking ? null : _testConnection,
+                  onSubmitted: (_) => _testConnection(),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _token,
+                  obscureText: _obscureToken,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Bridge API token',
+                    helperText: c.bridge.token != null
+                        ? 'Token stored securely. Enter a new token to replace it.'
+                        : 'Required when Bridge authentication is enabled.',
+                    prefixIcon: const Icon(Icons.key_rounded),
+                    suffixIcon: IconButton(
+                      tooltip: _obscureToken ? 'Show token' : 'Hide token',
+                      icon: Icon(
+                        _obscureToken
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscureToken = !_obscureToken),
+                    ),
+                  ),
+                  onSubmitted: (_) => _testConnection(),
+                ),
+                if (c.bridge.token != null) ...[
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: _clearToken,
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('Clear stored token'),
+                    ),
                   ),
                 ],
-              ),
-              const SizedBox(height: TbSpace.md),
-              _connectionStatus(c),
-            ],
-          ),
-        ),
-        const SizedBox(height: TbSpace.md),
-        TbCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TbEyebrow('Event'),
-              const SizedBox(height: 10),
-              if (c.hasSelectedEvent)
+                const SizedBox(height: TbSpace.md),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            c.eventTitle,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            c.eventDate,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
+                    TbPrimaryButton(
+                      label: 'Save',
+                      icon: Icons.check_rounded,
+                      onPressed: _save,
                     ),
-                    const TbPill(
-                      label: 'Selected',
-                      color: TbColors.mint,
-                      icon: Icons.check,
-                      dense: true,
+                    const SizedBox(width: TbSpace.sm),
+                    TbSecondaryButton(
+                      label: c.bridgeChecking ? 'Testing…' : 'Test connection',
+                      icon: Icons.wifi_tethering_rounded,
+                      onPressed: c.bridgeChecking ? null : _testConnection,
                     ),
                   ],
-                )
-              else
-                const TbEmptyState(
-                  icon: Icons.event_busy_outlined,
-                  title: 'No event selected',
-                  message:
-                      'Return to the booth screen to create or select an event.',
                 ),
-              const SizedBox(height: TbSpace.md),
-              TbMetric(label: 'Event ID', value: c.eventId),
-            ],
+                const SizedBox(height: TbSpace.md),
+                _connectionStatus(c),
+              ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: TbSpace.md),
+          TbCard(
+            color: TbColors.surfaceRaised,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const TbEyebrow('Temporary test tools'),
+                const SizedBox(height: 8),
+                Text(
+                  'Operator-only JPEG import for Bridge upload testing. It does not use the camera or replace the booth workflow.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 10),
+                TbSecondaryButton(
+                  label: 'Import Test JPEG',
+                  icon: Icons.upload_file_rounded,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          JpegImportTestScreen(controller: widget.controller),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TbSpace.md),
+          TbCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const TbEyebrow('Event'),
+                const SizedBox(height: 10),
+                if (c.hasSelectedEvent)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              c.eventTitle,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              c.eventDate,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const TbPill(
+                        label: 'Selected',
+                        color: TbColors.mint,
+                        icon: Icons.check,
+                        dense: true,
+                      ),
+                    ],
+                  )
+                else
+                  const TbEmptyState(
+                    icon: Icons.event_busy_outlined,
+                    title: 'No event selected',
+                    message:
+                        'Return to the booth screen to create or select an event.',
+                  ),
+                const SizedBox(height: TbSpace.md),
+                TbMetric(label: 'Event ID', value: c.eventId),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -346,6 +436,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _diagnosticRow('Event ID', c.eventId),
           const Divider(height: 26),
           _diagnosticRow('Bridge URL', c.bridge.baseUrl),
+          const Divider(height: 26),
+          _diagnosticRow(
+            'Bridge token',
+            c.bridge.token == null ? 'Not configured' : 'Configured securely',
+          ),
           const Divider(height: 26),
           _diagnosticRow('Service', health?.service ?? 'Not checked'),
           if (c.bridgeCheckError != null) ...[

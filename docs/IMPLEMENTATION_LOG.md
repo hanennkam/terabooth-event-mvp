@@ -1609,3 +1609,83 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - Next: account owner Download Manual Profiles/check wildcard App ID; manual
   signing only if a real wildcard profile exists.
 - Report: `docs/technical/PHASE_6C_1_CASCABLE_DEMO_SIGNING_AND_INSTALL.md`.
+
+
+---
+
+## Phase 6C — iPad/Windows Bridge LAN integration (2026-11-12)
+
+**PASS authenticated physical iPad health; upload not tested.**
+
+- Added Keychain-backed runtime Bridge API token setting (masked, update/clear);
+  URL remains separately configurable and default now .192.
+- Flutter 144 tests, Bridge 61 tests, analyze clean; Release built/installed with
+  unchanged bundle/profile/signing.
+- iPad Safari and app authenticated health confirm LAN/auth to Windows
+  .192:8787; Bridge connected. Token absent from settings.json/logs.
+- No camera/printer/Bridge config changes; upload/QR/print remain untested.
+- Report: `docs/technical/PHASE_6C_IPAD_WINDOWS_BRIDGE_LAN_INTEGRATION.md`.
+
+
+---
+
+## Phase 6C-2 — iPad upload/template audit (2026-11-12)
+
+**BLOCKED physical JPEG upload; automated solo template PASS.**
+
+- Audited existing Bridge upload/render contract and app flow.
+- App has no supported synthetic JPEG input: MockCameraService emits PNG and
+  native camera is disabled/prohibited; no file-import path.
+- Did not upload PNG as a substitute or fabricate physical results.
+- `solo_4x6_v1` automated tests pass (1200x1800 JPEG); 61 Bridge tests, 144
+  Flutter tests, analyze clean.
+- No app build/install, camera, printer, auth, data or signing changes.
+- Report: `docs/technical/PHASE_6C_2_IPAD_PHOTO_UPLOAD_AND_TEMPLATE_RENDERING.md`.
+
+
+---
+
+## Phase 6C-3 — iPad JPEG import/upload (2026-11-12)
+
+**PASS physical import/upload/retrieval; MockPrinter only.**
+
+- Added temporary document-picker JPEG import tool isolated in Settings; validates
+  JPEG and uses existing approve/BridgeClient submit with solo_4x6_v1.
+- Physical iPad: 1200x1800 imported JPEG, job completed/confirmed/mock, original
+  hash MATCHES, derived 1200x1800 JPEG retrieved.
+- Added file_picker, PrintJob image hashes, isolated review preparation/tests.
+- Flutter 146 tests, Bridge 61, analyze clean; Release built/installed with iOS 14
+  deployment override; Keychain token/URL preserved.
+- No camera, physical printer, auth, data or signing changes.
+- Report: `docs/technical/PHASE_6C_3_IPAD_JPEG_IMPORT_AND_BRIDGE_UPLOAD.md`.
+
+
+---
+
+## Phase 6D-1 — DNP printer readiness (2026-11-12)
+
+**PARTIAL/BLOCKED before physical print.**
+
+- Windows has queue DS-RX1, driver DS-RX1 (Dai Nippon Printing), USB001, Normal;
+  current ticket is 6x4 with 2-inch cut disabled.
+- Bridge default printer name DNP DS-RX1HS does not match actual queue; bridge
+  currently mock. No code changes; spooler completion remains unknown.
+- 61 Bridge tests pass; auth 401; no physical print/queue/spooler change.
+- Report: `docs/technical/PHASE_6D_1_DNP_PRINTER_INTEGRATION_READINESS.md`.
+
+
+---
+
+## Phase 6D-2 — DNP configuration alignment/preflight (2026-11-12)
+
+**PARTIAL — repo queue/preflight aligned; Windows media still 6x4/cut disabled.**
+
+- Changed configurable printer-name default/scripts from DNP DS-RX1HS to actual
+  queue DS-RX1; mock/spooler-off preserved.
+- Added read-only `printer_preflight.ps1` and authenticated `/v1/printers`
+  preflight (queue, driver, port/status, media, orientation, resolution, cut,
+  configured queue, spooler mode); no secrets.
+- Current Windows ticket still PC 6x4/CUT_STANDARD; operator must select 4x6 and
+  leave cut disabled unless firmware/template require it.
+- 63 Bridge tests pass; no print/queue/auth/data changes.
+- Report: `docs/technical/PHASE_6D_2_DNP_CONFIGURATION_ALIGNMENT.md`.

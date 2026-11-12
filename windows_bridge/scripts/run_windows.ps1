@@ -29,7 +29,7 @@ if (-not (Test-Path ".\.venv\Scripts\python.exe")) {
     throw "Run scripts\install_windows.ps1 first."
 }
 if (-not $env:TERABOOTH_PRINTER) { $env:TERABOOTH_PRINTER = "spooler" }
-if (-not $env:TERABOOTH_PRINTER_NAME) { $env:TERABOOTH_PRINTER_NAME = "DNP DS-RX1HS" }
+if (-not $env:TERABOOTH_PRINTER_NAME) { $env:TERABOOTH_PRINTER_NAME = "DS-RX1" }
 if (-not $env:TERABOOTH_DATA_DIR) { $env:TERABOOTH_DATA_DIR = (Join-Path (Get-Location) "data") }
 if (-not $env:TERABOOTH_API_TOKEN -or $env:TERABOOTH_API_TOKEN -match "change-me") {
     Write-Warning "TERABOOTH_API_TOKEN is missing or a placeholder. Set a long random token before the event."

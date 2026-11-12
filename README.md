@@ -101,6 +101,11 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 6B-5 Personal Team trust/first launch: `docs/technical/PHASE_6B_5_PERSONAL_TEAM_TRUST_FIRST_LAUNCH.md`
 - Phase 6B-6 actual Terabooth iPad launch: `docs/technical/PHASE_6B_6_ACTUAL_TERABOOTH_IPAD_LAUNCH.md`
 - Phase 6C-1 Cascable demo signing/install: `docs/technical/PHASE_6C_1_CASCABLE_DEMO_SIGNING_AND_INSTALL.md`
+- Phase 6C iPad/Windows LAN integration: `docs/technical/PHASE_6C_IPAD_WINDOWS_BRIDGE_LAN_INTEGRATION.md`
+- Phase 6C-2 iPad upload/template audit: `docs/technical/PHASE_6C_2_IPAD_PHOTO_UPLOAD_AND_TEMPLATE_RENDERING.md`
+- Phase 6C-3 iPad JPEG import/upload: `docs/technical/PHASE_6C_3_IPAD_JPEG_IMPORT_AND_BRIDGE_UPLOAD.md`
+- Phase 6D-1 DNP printer readiness: `docs/technical/PHASE_6D_1_DNP_PRINTER_INTEGRATION_READINESS.md`
+- Phase 6D-2 DNP configuration alignment: `docs/technical/PHASE_6D_2_DNP_CONFIGURATION_ALIGNMENT.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`

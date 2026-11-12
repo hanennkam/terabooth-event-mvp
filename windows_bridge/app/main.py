@@ -31,7 +31,7 @@ from .template_render import compose_template
 from .templates import DEFAULT_TEMPLATE_ID, TemplateSpec, get_template
 from .config import ConfigurationError, Settings, load_settings, validate_settings
 from .diagnostics import snapshot as diagnostics_snapshot
-from .printer import Printer, build_printer
+from .printer import Printer, build_printer, printer_preflight
 from .security import make_access_token, make_token, token_hash, verify_token
 
 TEMPLATE = "strip_2x6_3up_v1"
@@ -660,7 +660,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/v1/printers")
     async def printers(_: None = Depends(auth)) -> dict[str, Any]:
-        return {"printers": [printer.health()]}
+        return {
+            "printers": [printer.health()],
+            "preflight": printer_preflight(settings),
+        }
 
     @app.post("/v1/print-jobs")
     async def create_print_job(

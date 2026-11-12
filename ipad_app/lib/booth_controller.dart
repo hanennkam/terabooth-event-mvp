@@ -4,14 +4,15 @@ import 'package:flutter/foundation.dart';
 
 import 'models.dart';
 import 'services/bridge_client.dart';
+import 'services/bridge_token_store.dart';
 import 'services/camera_pipeline.dart';
 import 'services/camera_service.dart';
+import 'templates/builtin_templates.dart';
+import 'templates/template_models.dart';
 import 'services/storage_service.dart';
 import 'services/face_detection_service.dart';
 import 'crop/crop_models.dart';
 import 'crop/crop_planner.dart';
-import 'templates/builtin_templates.dart';
-import 'templates/template_models.dart';
 
 enum BoothPhase { idle, capturing, review, uploading, printing, done, error }
 
@@ -25,6 +26,7 @@ class BoothController extends ChangeNotifier {
   late final SmartCropPlanner cropPlanner;
 
   BridgeClient bridge;
+  final BridgeTokenStore? bridgeTokenStore;
   String eventId;
   String eventTitle;
   String eventDate;
@@ -104,6 +106,7 @@ class BoothController extends ChangeNotifier {
     Duration captureTimeout = const Duration(seconds: 15),
     Duration connectTimeout = const Duration(seconds: 20),
     CameraPipeline? pipeline,
+    this.bridgeTokenStore,
   }) : faceDetector = faceDetector ?? defaultFaceDetector(),
        cameraPipeline =
            pipeline ??
@@ -505,10 +508,20 @@ class BoothController extends ChangeNotifier {
     if (_disposed) return;
     try {
       final settings = await storage.readSettings();
-      final url = settings['bridge_url'];
-      if (url is String && url.trim().isNotEmpty) {
-        setBridge(url.trim());
+      final storedUrl = settings['bridge_url'];
+      final url = storedUrl is String && storedUrl.trim().isNotEmpty
+          ? storedUrl.trim()
+          : bridge.baseUrl;
+      String? token;
+      try {
+        token = await bridgeTokenStore?.read();
+      } catch (_) {
+        // A Keychain failure must not expose or log the token.
       }
+      bridge = BridgeClient(baseUrl: url, token: token);
+      bridgeHealth = null;
+      bridgeCheckError = null;
+      notifyListeners();
     } catch (_) {
       // Settings are optional; defaults remain usable.
     }
@@ -525,6 +538,24 @@ class BoothController extends ChangeNotifier {
     } catch (_) {
       // Keep the in-memory setting if persistence fails.
     }
+  }
+
+  Future<void> saveBridgeToken(String token) async {
+    final value = token.trim();
+    if (value.isEmpty || bridgeTokenStore == null) return;
+    await bridgeTokenStore!.write(value);
+    bridge = BridgeClient(baseUrl: bridge.baseUrl, token: value);
+    bridgeHealth = null;
+    bridgeCheckError = null;
+    notifyListeners();
+  }
+
+  Future<void> clearBridgeToken() async {
+    await bridgeTokenStore?.clear();
+    bridge = BridgeClient(baseUrl: bridge.baseUrl, token: null);
+    bridgeHealth = null;
+    bridgeCheckError = null;
+    notifyListeners();
   }
 
   Future<void> checkBridge() async {
@@ -697,6 +728,37 @@ class BoothController extends ChangeNotifier {
     } catch (_) {
       // Keep in-memory identity; no print retry is attempted.
     }
+  }
+
+  /// Test-only setup for the isolated JPEG import tool. The caller must use a
+  /// disposable controller/storage and invoke [approve] explicitly.
+  void prepareImportedTestReview({
+    required CapturedImage image,
+    required String testEventId,
+    required String testSessionId,
+  }) {
+    eventId = testEventId;
+    eventTitle = 'JPEG Import Test';
+    eventDate = 'Disposable test';
+    photos = [image];
+    sessionId = testSessionId;
+    sessionStartedAt = DateTime.now();
+    sessionStatus = BoothSessionStatus.active;
+    sessionPhotoCount = 1;
+    sessionCountdownSeconds = 0;
+    sessionTemplate = BuiltinTemplates.solo;
+    sessionConfiguration = const EventConfiguration(
+      templateId: 'solo_4x6_v1',
+      templateVersion: 1,
+      photoCount: 1,
+      countdownSeconds: 0,
+    );
+    sessionBranding = const EventBranding();
+    template = BuiltinTemplates.solo;
+    crops.clear();
+    error = null;
+    phase = BoothPhase.review;
+    notifyListeners();
   }
 
   Future<void> startSession() async {

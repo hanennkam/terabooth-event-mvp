@@ -156,3 +156,28 @@ def test_mock_printer_receives_copy_count(tmp_path):
     printer.submit("job-copy", source, 2)
     assert printer.submitted_copies == [2]
     assert (s.outbox_dir / "job-copy.jpg").exists()
+
+
+def test_printer_preflight_reports_configured_queue_and_mock_mode(tmp_path):
+    from app.printer import printer_preflight
+
+    s = settings(tmp_path)
+    out = printer_preflight(s)
+    assert out["configured_queue_name"] == "DS-RX1"
+    assert out["spooler_mode_enabled"] is False
+    assert out["available"] is False  # Windows-only query on this host
+    assert isinstance(out["query_error"], str)
+
+
+def test_printers_endpoint_exposes_safe_preflight_without_enabling_spooler(tmp_path):
+    s = settings(tmp_path)
+    with TestClient(create_app(s)) as client:
+        response = client.get("/v1/printers")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["printers"][0]["mode"] == "mock"
+        assert body["preflight"]["configured_queue_name"] == "DS-RX1"
+        assert body["preflight"]["spooler_mode_enabled"] is False
+        assert "query_error" not in body["preflight"] or isinstance(
+            body["preflight"]["query_error"], str
+        )

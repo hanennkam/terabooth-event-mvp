@@ -1,7 +1,7 @@
 # Submit one real print through the Windows spooler adapter.
 param(
   [string]$ImagePath = "",
-  [string]$PrinterName = "DNP DS-RX1HS"
+  [string]$PrinterName = "DS-RX1"
 )
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
