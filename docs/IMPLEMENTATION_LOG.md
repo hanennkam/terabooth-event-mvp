@@ -1772,3 +1772,18 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - No print/spooler/queue/customer/camera changes. Physical calibration awaits
   explicit authorization.
 - Report: `docs/technical/PHASE_6F_DNP_JOB_LEVEL_PRINT_CONTROL.md`.
+
+
+---
+
+## Phase 6G — XPS backend verification (2026-11-13)
+
+**PASS XPS geometry/driver public-ticket validation; cutter BLOCKED; no print.**
+
+- Fixed XPS writer factories and ValidationResult API; added no-print XPS dry-run
+  and sidecar validation.
+- Dry-run: 384x576 FixedPage, PR_4x6, Portrait, Option1, CUT_STANDARD,
+  NoConflict; private DNP cut omitted from ValidatedPrintTicket.
+- Real XPS path fails closed on private cut mismatch; no physical print.
+- Mac/Windows tests 74; production mock/spooler off; no customer/camera changes.
+- Report: `docs/technical/PHASE_6G_XPS_BACKEND_VERIFICATION.md`.
