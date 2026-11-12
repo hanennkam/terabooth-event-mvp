@@ -117,6 +117,7 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 7A first runtime integration: `docs/technical/PHASE_7A_FIRST_RUNTIME_INTEGRATION.md`
 - Phase 7B Cascable production-bundle evaluation: `docs/technical/PHASE_7B_CASCABLE_PRODUCTION_BUNDLE_EVALUATION.md`
 - Phase 7C runtime workflow readiness: `docs/technical/PHASE_7C_RUNTIME_WORKFLOW_READINESS.md`
+- Phase 8A event welcome and Canva template editor: `docs/technical/PHASE_8A_EVENT_WELCOME_CANVA_TEMPLATE.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`

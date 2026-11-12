@@ -8,6 +8,7 @@ import '../theme/tb_theme.dart';
 import '../widgets/tb_ui.dart';
 import 'branding_editor_screen.dart';
 import 'welcome_editor_screen.dart';
+import 'template_designer_screen.dart';
 import 'event_form_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -86,6 +87,19 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
     }
+  }
+
+  Future<void> _layout() async {
+    final saved = await Navigator.of(context).push<EventProfile>(
+      MaterialPageRoute(
+        builder: (_) => TemplateDesignerScreen(
+          controller: widget.controller,
+          event: _event,
+        ),
+      ),
+    );
+    if (!mounted || saved == null) return;
+    setState(_reloadSessions);
   }
 
   Future<void> _welcome() async {
@@ -218,6 +232,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           label: 'Welcome',
                           icon: Icons.waving_hand_outlined,
                           onPressed: _welcome,
+                        ),
+                        TbSecondaryButton(
+                          label: 'Photo layout',
+                          icon: Icons.dashboard_customize_outlined,
+                          onPressed: _layout,
                         ),
                         TbSecondaryButton(
                           label: 'Branding',

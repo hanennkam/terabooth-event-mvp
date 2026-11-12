@@ -146,7 +146,7 @@ class PhotoTemplate {
       if (!ids.add(slot.id)) {
         throw TemplateValidationException('duplicate slot id ${slot.id}');
       }
-      if (slot.imageIndex < 0 || slot.imageIndex > 2) {
+      if (slot.imageIndex < 0 || slot.imageIndex > 3) {
         throw TemplateValidationException(
           'slot ${slot.id} has invalid image index',
         );

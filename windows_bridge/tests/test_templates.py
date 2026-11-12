@@ -7,7 +7,7 @@ from PIL import Image
 
 from app.config import Settings
 from app.main import create_app
-from app.templates import COLLAGE, DEFAULT, MINIMAL
+from app.templates import COLLAGE, DEFAULT, MINIMAL, PRECOMPOSED
 
 
 def make_settings(tmp_path):
@@ -176,3 +176,21 @@ def test_crop_image_must_match_slot(tmp_path, three_images):
         mismatched = crop("photo_1", "img1")
         r = run_job(client, three_images, crops=[mismatched], key="mismatch")
         assert r.status_code == 422
+
+
+def test_precomposed_template_accepts_composed_plus_originals(tmp_path, three_images):
+    from tests.conftest import make_jpeg
+
+    s = make_settings(tmp_path)
+    with TestClient(create_app(s)) as client:
+        composed = make_jpeg((240, 240, 240))
+        upload = [composed, *three_images]
+        response = run_job(client, upload, template=PRECOMPOSED, key="precomposed")
+        assert response.status_code == 202, response.text
+        job = wait_terminal(client, response.json()["job_id"])
+        assert job["state"] == "completed"
+        assert len(job["images"]) == 4
+        artefact = client.get(f"/v1/print-jobs/{job['job_id']}/artefact")
+        assert artefact.status_code == 200
+        with Image.open(io.BytesIO(artefact.content)) as img:
+            assert img.size == (1200, 1800)

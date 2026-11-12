@@ -694,10 +694,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if meta.copies < 1 or meta.copies > 2:
             raise HTTPException(422, "copies must be 1 or 2")
         expected_images = len(template_spec.slots)
-        if len(meta.images) != expected_images:
+        precomposed = template_spec.id == "precomposed_4x6_v1"
+        if (not precomposed and len(meta.images) != expected_images) or (
+            precomposed and len(meta.images) < 1
+        ):
             raise HTTPException(
                 422,
-                f"template requires exactly {expected_images} images",
+                f"template requires {expected_images} images" if not precomposed else "precomposed template requires at least one image",
             )
         key = idempotency_key or request.headers.get("Idempotency-Key")
         if not key:
@@ -712,10 +715,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         for field, value in form.multi_items():
             if field.startswith("image_") and isinstance(value, StarletteUploadFile):
                 files.append(value)
-        if len(files) != expected_images:
+        if (not precomposed and len(files) != expected_images) or (
+            precomposed and len(files) < 1
+        ):
             raise HTTPException(
                 422,
-                f"expected {expected_images} image parts, got {len(files)}",
+                f"expected {expected_images} image parts, got {len(files)}" if not precomposed else "precomposed template requires at least one image part",
             )
 
         total = 0

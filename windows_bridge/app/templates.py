@@ -207,7 +207,24 @@ GRID = TemplateSpec(
 )
 
 
-TEMPLATES = {template.id: template for template in (DEFAULT, COLLAGE, MINIMAL, SOLO, DUO, GRID)}
+PRECOMPOSED = TemplateSpec(
+    id="precomposed_4x6_v1",
+    name="Precomposed 4x6",
+    description="Full-bleed precomposed photo strip from the iPad.",
+    version=1,
+    canvas_width=1200,
+    canvas_height=1800,
+    output_width=1200,
+    output_height=1800,
+    dpi=300,
+    background_color=0xFFFFFFFF,
+    repeat_x=1,
+    panel_width=0,
+    slots=(SlotSpec("photo_1", 0, 0, 0, 1200, 1800, 0),),
+    texts=(),
+)
+
+TEMPLATES = {template.id: template for template in (DEFAULT, COLLAGE, MINIMAL, SOLO, DUO, GRID, PRECOMPOSED)}
 
 
 def get_template(template_id: str) -> TemplateSpec | None:

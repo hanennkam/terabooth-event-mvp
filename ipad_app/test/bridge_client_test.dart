@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:terabooth_ipad/models.dart';
 import 'package:terabooth_ipad/services/bridge_client.dart';
+import 'package:terabooth_ipad/templates/template_models.dart';
 
 void main() {
   test('submit sends idempotency and parses job', () async {
@@ -184,5 +185,61 @@ void main() {
         isA<BridgeException>().having((e) => e.code, 'code', 'GIF_UNAVAILABLE'),
       ),
     );
+  });
+
+  test('precomposed template accepts composed plus originals', () async {
+    final client = MockClient((request) async {
+      final body = request.body;
+      expect(body, contains('precomposed_4x6_v1'));
+      return http.Response(
+        jsonEncode({
+          'job_id': 'pre',
+          'state': 'completed',
+          'completion': 'confirmed',
+          'attempts': 1,
+          'printer_mode': 'mock',
+        }),
+        202,
+      );
+    });
+    final images = List.generate(
+      4,
+      (i) => CapturedImage(
+        id: 'img_$i',
+        bytes: Uint8List.fromList([i]),
+        width: 1200,
+        height: 1800,
+        capturedAt: DateTime.now(),
+      ),
+    );
+    final job = await BridgeClient(baseUrl: 'http://x', client: client).submit(
+      eventId: 'evt',
+      sessionId: 'ses',
+      title: 'T',
+      date: 'D',
+      images: images,
+      template: const PhotoTemplate(
+        id: 'precomposed_4x6_v1',
+        name: 'Precomposed',
+        description: '',
+        version: 1,
+        canvasWidth: 1200,
+        canvasHeight: 1800,
+        outputWidth: 1200,
+        outputHeight: 1800,
+        dpi: 300,
+        slots: [
+          TemplateSlot(
+            id: 'photo_1',
+            imageIndex: 0,
+            x: 0,
+            y: 0,
+            width: 1200,
+            height: 1800,
+          ),
+        ],
+      ),
+    );
+    expect(job.id, 'pre');
   });
 }

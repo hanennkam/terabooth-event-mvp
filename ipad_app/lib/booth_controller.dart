@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 import 'models.dart';
@@ -7,6 +9,7 @@ import 'services/bridge_client.dart';
 import 'services/bridge_token_store.dart';
 import 'services/camera_pipeline.dart';
 import 'services/camera_service.dart';
+import 'services/custom_template_composer.dart';
 import 'templates/builtin_templates.dart';
 import 'templates/template_models.dart';
 import 'services/storage_service.dart';
@@ -812,14 +815,27 @@ class BoothController extends ChangeNotifier {
     sessionId = 'ses_${DateTime.now().millisecondsSinceEpoch}';
     sessionStartedAt = DateTime.now();
     sessionStatus = BoothSessionStatus.active;
-    sessionPhotoCount = event.configuration.photoCount.clamp(1, 4);
+    final custom = event.configuration.customTemplate;
+    if (custom != null && custom.slots.isNotEmpty) {
+      sessionPhotoCount = custom.slots
+          .map((slot) => slot.captureOrder + 1)
+          .reduce((a, b) => a > b ? a : b)
+          .clamp(1, 4);
+      sessionConfiguration = event.configuration.copyWith(
+        photoCount: sessionPhotoCount,
+        templateId: 'custom_design',
+      );
+      sessionTemplate = custom.toPhotoTemplate();
+    } else {
+      sessionPhotoCount = event.configuration.photoCount.clamp(1, 4);
+      sessionConfiguration = event.configuration;
+      sessionTemplate = BuiltinTemplates.forPhotoCount(
+        sessionPhotoCount,
+        preferred: template,
+      );
+    }
     sessionCountdownSeconds = event.configuration.countdownSeconds;
-    sessionConfiguration = event.configuration;
     sessionBranding = event.configuration.branding;
-    sessionTemplate = BuiltinTemplates.forPhotoCount(
-      sessionPhotoCount,
-      preferred: template,
-    );
     template = sessionTemplate!;
     _countdownCancelled = false;
     _endRequested = false;
@@ -1180,18 +1196,54 @@ class BoothController extends ChangeNotifier {
     gifError = null;
     notifyListeners();
     try {
-      final brandingLogo = sessionBranding.enabled
-          ? await storage.readBrandingLogo(sessionBranding.logoPath)
-          : null;
+      final custom = sessionConfiguration?.customTemplate;
+      var uploadImages = photos;
+      var uploadTemplate = sessionTemplate ?? template;
+      var uploadBranding = sessionBranding;
+      Uint8List? brandingLogo;
+      if (custom != null && custom.slots.isNotEmpty) {
+        if (custom.artworkPath == null) {
+          throw StateError('Custom template artwork is missing.');
+        }
+        final artwork = await File(custom.artworkPath!).readAsBytes();
+        final composed = await CustomTemplateComposer().compose(
+          design: custom,
+          artworkBytes: artwork,
+          photos: photos,
+        );
+        final composedPath = await storage.saveOriginal(
+          eventId: eventId,
+          sessionId: sessionId!,
+          index: 0,
+          bytes: composed,
+          captureId: 'composed_${DateTime.now().microsecondsSinceEpoch}',
+          extension: 'png',
+        );
+        final composedImage = CapturedImage(
+          id: 'composed',
+          bytes: composed,
+          width: 1200,
+          height: 1800,
+          capturedAt: DateTime.now(),
+          path: composedPath,
+          captureId: 'composed',
+          sha256: sha256.convert(composed).toString(),
+        );
+        uploadImages = [composedImage, ...photos];
+        uploadTemplate = BuiltinTemplates.precomposed;
+        uploadBranding = const EventBranding();
+      } else if (sessionBranding.enabled) {
+        brandingLogo = await storage.readBrandingLogo(sessionBranding.logoPath);
+      }
       job = await bridge.submit(
         eventId: eventId,
         sessionId: sessionId!,
         title: eventTitle,
         date: eventDate,
-        images: photos,
-        template: sessionTemplate ?? template,
-        crops: crops.values.toList(),
-        branding: sessionBranding,
+        images: uploadImages,
+        template: uploadTemplate,
+        crops: custom != null ? const [] : crops.values.toList(),
+        branding: uploadBranding,
         brandingLogo: brandingLogo,
       );
       await _createSubmittedJob(job!);

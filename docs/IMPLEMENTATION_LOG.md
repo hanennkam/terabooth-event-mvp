@@ -1867,3 +1867,21 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
 - No camera/print/spooler/licence/data changes. Physical EOS blocked by
   production-bundle Cascable licence.
 - Report: `docs/technical/PHASE_7C_RUNTIME_WORKFLOW_READINESS.md`.
+
+
+---
+
+## Phase 8A — Event welcome and Canva template (2026-11-13)
+
+**PASS software; no physical camera/print.**
+
+- Event welcome config/editor/preview, per-event persistence, custom start label.
+- Canva PNG import preserving source; touch slot editor (add/remove/drag/resize,
+  order, zoom/pan, cover/contain, overlay/background); normalized coordinates.
+- Local 1200x1800 composition preserving originals; Bridge precomposed template
+  accepts composed + originals; existing job/QR/MockPrinter flow.
+- 152 Flutter tests and 78 Bridge tests passed; analyze clean. Screenshots not
+  captured (headless capture hung).
+- Known limits: no font picker, placeholder editor samples, 4 slots, local
+  composition. Native camera licence and print calibration remain blocked.
+- Report: `docs/technical/PHASE_8A_EVENT_WELCOME_CANVA_TEMPLATE.md`.

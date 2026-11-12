@@ -199,9 +199,11 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          _welcomeBanner(context, c),
-          const SizedBox(height: 18),
+          if (MediaQuery.sizeOf(context).height >= 700) ...[
+            const SizedBox(height: 18),
+            _welcomeBanner(context, c),
+            const SizedBox(height: 18),
+          ],
           Text(
             c.currentEvent.configuration.welcome.title.trim().isEmpty
                 ? c.eventTitle
@@ -274,7 +276,7 @@ class WelcomeScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(TbRadius.md),
       child: Container(
-        height: 190,
+        height: 130,
         decoration: BoxDecoration(
           color: Color(w.backgroundValue),
           image: hasImage
@@ -286,7 +288,7 @@ class WelcomeScreen extends StatelessWidget {
         ),
         child: Container(
           color: Colors.black.withValues(alpha: 0.38),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               if (w.logoPath != null && File(w.logoPath!).existsSync())
@@ -307,7 +309,7 @@ class WelcomeScreen extends StatelessWidget {
                       w.subtitle.trim().isEmpty
                           ? 'Welcome! Tap Start to begin your photo session.'
                           : w.subtitle,
-                      maxLines: 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),

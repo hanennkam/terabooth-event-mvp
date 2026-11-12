@@ -406,6 +406,29 @@ abstract final class BuiltinTemplates {
     ],
   );
 
+  static const precomposed = PhotoTemplate(
+    id: 'precomposed_4x6_v1',
+    name: 'Canva Photo Strip',
+    description: 'Full-bleed composition generated on the iPad.',
+    version: 1,
+    canvasWidth: 1200,
+    canvasHeight: 1800,
+    outputWidth: 1200,
+    outputHeight: 1800,
+    dpi: 300,
+    backgroundColor: 0xFFFFFFFF,
+    slots: [
+      TemplateSlot(
+        id: 'photo_1',
+        imageIndex: 0,
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 1800,
+      ),
+    ],
+  );
+
   static const variants = [solo, duo, grid];
 
   static PhotoTemplate forPhotoCount(int count, {PhotoTemplate? preferred}) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -114,6 +115,109 @@ void main() {
       expect(controller.photos, hasLength(3));
     },
   );
+
+  test('custom Canva layout composes locally and uploads originals', () async {
+    final temp = await Directory.systemTemp.createTemp('terabooth_canva_');
+    addTearDown(() => temp.delete(recursive: true));
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder);
+    canvas.drawRect(
+      const ui.Rect.fromLTWH(0, 0, 600, 900),
+      ui.Paint()..color = const ui.Color(0x22C8A464),
+    );
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(600, 900);
+    picture.dispose();
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    final artwork = File('${temp.path}/canva.png');
+    await artwork.writeAsBytes(data!.buffer.asUint8List());
+    final posts = <String>[];
+    String? submittedBody;
+    final client = MockClient((request) async {
+      if (request.method == 'POST' && request.url.path == '/v1/print-jobs') {
+        posts.add(request.url.path);
+        submittedBody = latin1.decode(request.bodyBytes);
+        return http.Response(
+          jsonEncode({
+            'job_id': 'job_custom',
+            'state': 'queued',
+            'completion': 'unknown',
+            'attempts': 0,
+            'delivery_url': 'http://x/d/custom',
+          }),
+          202,
+        );
+      }
+      if (request.url.path.endsWith('/artefact')) {
+        return http.Response.bytes(jpeg, 200);
+      }
+      if (request.url.path.startsWith('/v1/print-jobs/')) {
+        return http.Response(
+          jsonEncode({
+            'job_id': 'job_custom',
+            'state': 'completed',
+            'completion': 'confirmed',
+            'attempts': 1,
+            'delivery_url': 'http://x/d/custom',
+          }),
+          200,
+        );
+      }
+      return http.Response('not found', 404);
+    });
+    final controller = controllerFor(temp, client);
+    addTearDown(controller.dispose);
+    final created = await controller.createEventProfile(
+      EventProfile(
+        id: 'evt_canva',
+        title: 'Canva Event',
+        date: '14 Nov',
+        dateIso: '2026-11-14',
+        startTime: '18:00',
+        endTime: '22:00',
+        status: EventStatus.scheduled,
+      ),
+    );
+    await controller.updateEvent(
+      created.copyWith(
+        configuration: created.configuration.copyWith(
+          customTemplate: EventCustomTemplate(
+            artworkPath: artwork.path,
+            artworkWidth: 600,
+            artworkHeight: 900,
+            slots: const [
+              CustomPhotoSlot(
+                id: 'a',
+                captureOrder: 0,
+                x: .1,
+                y: .1,
+                width: .8,
+                height: .35,
+              ),
+              CustomPhotoSlot(
+                id: 'b',
+                captureOrder: 1,
+                x: .1,
+                y: .55,
+                width: .8,
+                height: .35,
+                contain: true,
+                zoom: 1.2,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await controller.startSession();
+    await controller.approve();
+    expect(controller.phase, BoothPhase.done, reason: controller.error);
+    expect(posts, hasLength(1));
+    expect(submittedBody, contains('precomposed_4x6_v1'));
+    expect(controller.photos, hasLength(2));
+    expect(controller.job?.deliveryUrl, 'http://x/d/custom');
+  });
 
   test('GIF is fetched independently after print completion', () async {
     final temp = await Directory.systemTemp.createTemp('terabooth_gif_');

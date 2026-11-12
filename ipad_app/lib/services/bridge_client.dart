@@ -98,10 +98,12 @@ class BridgeClient {
     Uint8List? brandingLogo,
   }) {
     final expected = template?.slots.length ?? 3;
-    if (images.length != expected) {
+    final extraComposed = template?.id == 'precomposed_4x6_v1';
+    if ((!extraComposed && images.length != expected) ||
+        (extraComposed && images.isEmpty)) {
       return Future.error(
         ArgumentError(
-          'template requires $expected images, got ${images.length}',
+          'template requires ${extraComposed ? 'at least one' : expected} images, got ${images.length}',
         ),
       );
     }

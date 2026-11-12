@@ -186,6 +186,54 @@ void main() {
     },
   );
 
+  test('custom Canva layout persists per event', () async {
+    final temp = await Directory.systemTemp.createTemp('tb_8a_layout_');
+    addTearDown(() => temp.delete(recursive: true));
+    final controller = controllerFor(temp);
+    addTearDown(controller.dispose);
+    final created = await controller.createEventProfile(event());
+    final updated = created.copyWith(
+      configuration: created.configuration.copyWith(
+        customTemplate: const EventCustomTemplate(
+          artworkPath: '/tmp/canva.png',
+          artworkWidth: 1200,
+          artworkHeight: 1800,
+          layerMode: TemplateLayerMode.background,
+          slots: [
+            CustomPhotoSlot(
+              id: 'a',
+              captureOrder: 0,
+              x: .1,
+              y: .1,
+              width: .8,
+              height: .3,
+            ),
+            CustomPhotoSlot(
+              id: 'b',
+              captureOrder: 1,
+              x: .1,
+              y: .5,
+              width: .8,
+              height: .3,
+              contain: true,
+              zoom: 1.4,
+            ),
+          ],
+        ),
+      ),
+    );
+    await controller.updateEvent(updated);
+    final restarted = controllerFor(temp);
+    addTearDown(restarted.dispose);
+    await restarted.loadEvents();
+    final design = restarted.currentEvent.configuration.customTemplate!;
+    expect(design.artworkPath, '/tmp/canva.png');
+    expect(design.layerMode, TemplateLayerMode.background);
+    expect(design.slots, hasLength(2));
+    expect(design.slots[1].contain, isTrue);
+    expect(design.slots[1].zoom, 1.4);
+  });
+
   test('booth layout choice persists as event configuration', () async {
     final temp = await Directory.systemTemp.createTemp('tb_4a_config_');
     addTearDown(() => temp.delete(recursive: true));
