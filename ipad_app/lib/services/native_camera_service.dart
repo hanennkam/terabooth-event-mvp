@@ -11,9 +11,14 @@ import 'camera_service.dart';
 ///
 /// The native side is a compile-safe stub until CascableCore is integrated.
 /// It returns `CAMERA_SDK_MISSING` rather than faking a capture.
-class NativeCameraService implements CameraService {
+class NativeCameraService
+    implements CameraService, CameraLiveViewSource, CameraEventSource {
   static const MethodChannel _channel = MethodChannel(CameraChannels.method);
   static const EventChannel _eventChannel = EventChannel(CameraChannels.events);
+  late final Stream<Map<String, dynamic>> _events = _eventChannel
+      .receiveBroadcastStream()
+      .map((event) => (event as Map).cast<String, dynamic>())
+      .asBroadcastStream();
 
   @override
   String get name => 'Canon EOS 60D (CascableCore)';
@@ -76,12 +81,11 @@ class NativeCameraService implements CameraService {
     return _channel.invokeMapMethod<String, dynamic>(CameraMethods.status);
   }
 
-  /// Native state/capture events. The current Swift stub does not emit these;
-  /// the contract is defined for the future CascableCore adapter.
-  Stream<Map<String, dynamic>> get events => _eventChannel
-      .receiveBroadcastStream()
-      .map((event) => (event as Map).cast<String, dynamic>());
+  /// Native state/capture events. A single broadcast subscription is shared by
+  /// the event and Live View consumers.
+  Stream<Map<String, dynamic>> get events => _events;
 
+  @override
   Stream<CameraAdapterEvent> get parsedEvents =>
       events.map(CameraAdapterEvent.fromMap);
 
@@ -93,14 +97,22 @@ class NativeCameraService implements CameraService {
     await _channel.invokeMethod<void>(CameraMethods.stopDiscovery);
   }
 
+  @override
   Future<void> startLiveView() async {
     await _channel.invokeMethod<void>(CameraMethods.startLiveView);
   }
 
+  @override
   Future<void> stopLiveView() async {
     await _channel.invokeMethod<void>(CameraMethods.stopLiveView);
   }
 
+  @override
+  Stream<Uint8List> get liveViewFrames => parsedEvents
+      .where((event) => event.isLiveViewFrame)
+      .map((event) => Uint8List.fromList(base64Decode(event.bytes ?? '')));
+
+  @override
   Future<void> dispose() async {
     await _channel.invokeMethod<void>(CameraMethods.dispose);
   }
@@ -109,7 +121,8 @@ class NativeCameraService implements CameraService {
 /// Dart-side selection for the native CascableCore adapter.
 /// Delegates to the existing channel and does not create a second camera
 /// state machine. It is not the default service.
-class CascableCameraService implements CameraService {
+class CascableCameraService
+    implements CameraService, CameraLiveViewSource, CameraEventSource {
   final NativeCameraService native;
   CascableCameraService({NativeCameraService? native})
     : native = native ?? NativeCameraService();
@@ -131,13 +144,19 @@ class CascableCameraService implements CameraService {
       native.capture(captureId: captureId);
 
   Stream<Map<String, dynamic>> get events => native.events;
+  @override
   Stream<CameraAdapterEvent> get parsedEvents => native.parsedEvents;
 
   Future<Map<String, dynamic>?> initialize() => native.initialize();
   Future<void> startDiscovery() => native.startDiscovery();
   Future<void> stopDiscovery() => native.stopDiscovery();
+  @override
   Future<void> startLiveView() => native.startLiveView();
+  @override
   Future<void> stopLiveView() => native.stopLiveView();
+  @override
+  Stream<Uint8List> get liveViewFrames => native.liveViewFrames;
+  @override
   Future<void> dispose() => native.dispose();
 }
 

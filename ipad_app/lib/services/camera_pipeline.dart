@@ -570,6 +570,7 @@ class CameraPipeline extends ChangeNotifier {
   _CaptureJob? _active;
   bool _disposed = false;
   int _counter = 0;
+  StreamSubscription<CameraAdapterEvent>? _cameraEvents;
 
   CameraPipelineState _state = const CameraPipelineState();
 
@@ -579,7 +580,24 @@ class CameraPipeline extends ChangeNotifier {
     this.captureTimeout = const Duration(seconds: 15),
     this.connectTimeout = const Duration(seconds: 20),
     ImageValidator? validator,
-  }) : ingestor = ImageIngestor(storage: storage, validator: validator);
+  }) : ingestor = ImageIngestor(storage: storage, validator: validator) {
+    if (camera is CameraEventSource) {
+      _cameraEvents = (camera as CameraEventSource).parsedEvents.listen((
+        event,
+      ) {
+        if (!event.isConnection) return;
+        if (event.state == 'disconnected' ||
+            event.state == 'failed' ||
+            event.state == 'disconnectFailed') {
+          notifyDisconnected(
+            message: event.message?.isNotEmpty == true
+                ? event.message!
+                : 'camera disconnected',
+          );
+        }
+      });
+    }
+  }
 
   CameraPipelineState get state => _state;
   CameraConnectionState get connectionState => _state.connection;
@@ -926,6 +944,8 @@ class CameraPipeline extends ChangeNotifier {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    _cameraEvents?.cancel();
+    _cameraEvents = null;
     _failActive(
       CameraErrorCodes.disposed,
       'camera pipeline disposed',

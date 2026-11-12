@@ -137,16 +137,27 @@ class CaptureScreen extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.center,
-                        radius: 1.1,
-                        colors: [Color(0xFF262A33), Color(0xFF111318)],
+                  if (c.liveViewFrame != null)
+                    Positioned.fill(
+                      child: Image.memory(
+                        c.liveViewFrame!,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
+                    )
+                  else ...[
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment.center,
+                          radius: 1.1,
+                          colors: [Color(0xFF262A33), Color(0xFF111318)],
+                        ),
                       ),
                     ),
-                  ),
-                  CustomPaint(painter: _ViewfinderPainter()),
+                    CustomPaint(painter: _ViewfinderPainter()),
+                  ],
                   Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -192,9 +203,11 @@ class CaptureScreen extends StatelessWidget {
                     top: 18,
                     right: 18,
                     child: TbPill(
-                      label: 'Mock viewfinder',
-                      color: TbColors.rose,
-                      icon: Icons.science_outlined,
+                      label: c.isMock ? 'Mock viewfinder' : 'Live view',
+                      color: c.isMock ? TbColors.rose : TbColors.mint,
+                      icon: c.isMock
+                          ? Icons.science_outlined
+                          : Icons.videocam_outlined,
                       dense: true,
                     ),
                   ),
@@ -311,6 +324,13 @@ class CaptureScreen extends StatelessWidget {
               minHeight: 8,
             ),
           ),
+          if (c.liveViewError != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Live View: ${c.liveViewError}',
+              style: const TextStyle(color: TbColors.muted, fontSize: 11),
+            ),
+          ],
           const SizedBox(height: TbSpace.lg),
           for (var i = 0; i < c.expectedPhotoCount; i++) ...[
             _stepRow(context, c, i),

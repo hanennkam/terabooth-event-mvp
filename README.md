@@ -93,6 +93,14 @@ Set the Windows bridge URL on the welcome screen (e.g. `http://<windows-lan-ip>:
 - Phase 3A-3B iPad Personal Team signing: `docs/technical/PHASE_3A_3B_IPAD_PERSONAL_TEAM_SIGNING.md`
 - Phase 3A-3C safe iPad preflight probe: `docs/technical/PHASE_3A_3C_SAFE_IPAD_CAMERA_PREFLIGHT.md`
 - Phase 3A-3D JPEG-only camera contract: `docs/technical/PHASE_3A_3D_JPEG_ONLY_CAMERA_CONTRACT.md`
+- Phase 6A CascableCore integration: `docs/technical/PHASE_6A_CASCABLECORE_INTEGRATION.md`
+- Phase 6B-1 Cascable demo signing/provisioning: `docs/technical/PHASE_6B_1_CASCABLE_DEMO_SIGNING_PROVISIONING.md`
+- Phase 6B-2 Personal Team wildcard investigation: `docs/technical/PHASE_6B_2_PERSONAL_TEAM_WILDCARD_INVESTIGATION.md`
+- Phase 6B-3 Personal Team signing capability: `docs/technical/PHASE_6B_3_PERSONAL_TEAM_SIGNING_CAPABILITY.md`
+- Phase 6B-4 iPad developer trust diagnosis: `docs/technical/PHASE_6B_4_IPAD_DEVELOPER_TRUST_DIAGNOSIS.md`
+- Phase 6B-5 Personal Team trust/first launch: `docs/technical/PHASE_6B_5_PERSONAL_TEAM_TRUST_FIRST_LAUNCH.md`
+- Phase 6B-6 actual Terabooth iPad launch: `docs/technical/PHASE_6B_6_ACTUAL_TERABOOTH_IPAD_LAUNCH.md`
+- Phase 6C-1 Cascable demo signing/install: `docs/technical/PHASE_6C_1_CASCABLE_DEMO_SIGNING_AND_INSTALL.md`
 - Phase 4A event management/session foundation: `docs/technical/PHASE_4A_EVENT_MANAGEMENT_AND_SESSION_FOUNDATION.md`
 - Phase 4B configurable capture/branding/close-out: `docs/technical/PHASE_4B_CONFIGURABLE_CAPTURE_BRANDING_AND_SESSION_CLOSEOUT.md`
 - Phase 4C guest gallery/local QR delivery: `docs/technical/PHASE_4C_GUEST_EXPERIENCE_LOCAL_QR_DELIVERY.md`

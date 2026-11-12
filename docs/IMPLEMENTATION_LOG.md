@@ -1467,3 +1467,145 @@ Temporary server stopped; temp data/env removed; iPhone simulator erased; test a
   camera or Flutter change.
 - Physical DNP test checklist in
   `docs/technical/PHASE_5B_1_DNP_PRINTING_READINESS.md`.
+
+
+---
+
+## Phase 6A — CascableCore integration (2026-11-12)
+
+**PASS source/automated; physical camera NOT TESTED.**
+
+- Fixed `CameraPlugin.licenseApplied` handoff from demo licence verification.
+- Added native device disposal/disconnect and shared native event stream.
+- Added optional `CameraLiveViewSource`/`CameraEventSource`; controller starts/
+  stops Live View and displays real frames; connection loss propagates to
+  CameraPipeline.
+- Preserved MockCameraService default, original-only JPEG capture, ImageIngestor
+  validation/storage, no physical enablement.
+- Flutter 141 tests, Bridge 61 tests, analyze clean; demo/production simulator
+  builds pass; demo licence only in demo, production licence absent.
+- Physical signing still blocked by demo bundle-ID provisioning.
+- Report: `docs/technical/PHASE_6A_CASCABLECORE_INTEGRATION.md`.
+
+
+---
+
+## Phase 6B-1 — Cascable demo signing/provisioning (2026-11-12)
+
+**BLOCKED — no wildcard App ID/provisioning profile available locally.**
+
+- Connected iPad and one Apple Development identity observed; Xcode exposes only
+  the Personal Team; no provisioning profiles locally.
+- Demo bundle `se.cascable.CascableCoreiOSDemo` remains unprovisionable; no
+  account/App ID/certificate changes attempted.
+- No install/launch/camera/print. Production Bundle ID and licence untouched.
+- Manual wildcard App ID/profile steps documented in
+  `docs/technical/PHASE_6B_1_CASCABLE_DEMO_SIGNING_PROVISIONING.md`.
+
+
+---
+
+## Phase 6B-2 — Personal Team wildcard investigation (2026-11-12)
+
+**BLOCKED — no wildcard profile locally; supported manual-signing path identified.**
+
+- Confirmed only Personal Team, one Apple Development identity, zero installed
+  provisioning profiles, and automatic signing attempting an explicit App ID.
+- App has no explicit-ID entitlements and is technically eligible for an
+  Xcode-managed wildcard team profile, but no wildcard profile is available.
+- Safest next step is Xcode Download Manual Profiles, then manual signing with
+  the actual wildcard profile for Debug-CascableDemo only; Bundle ID unchanged.
+- Paid membership not proven necessary; do not purchase/upgrade without owner
+  approval.
+- No project/account/signing changes, no install/launch/camera/print.
+- Report: `docs/technical/PHASE_6B_2_PERSONAL_TEAM_WILDCARD_INVESTIGATION.md`.
+
+
+---
+
+## Phase 6B-3 — Isolated Personal Team signing capability (2026-11-12)
+
+**PASS build/sign/install; launch blocked by profile trust; no wildcard proven.**
+
+- Created disposable /tmp iOS app with unique explicit ID
+  `com.terabooth.personalsigningprobe6b3`, no capabilities.
+- Automatic signing with Personal Team succeeded; explicit Xcode-managed profile
+  with current certificate and iPad UDID, expires in 7 days.
+- Installed on physical iPad; launch denied because developer profile is not
+  explicitly trusted (operator Settings step).
+- App uninstalled and temp project removed; shared signing assets untouched.
+- Does not prove wildcard provisioning or solve the Cascable demo vendor ID.
+- No Terabooth target/config/licence/camera/printer changes.
+- Report: `docs/technical/PHASE_6B_3_PERSONAL_TEAM_SIGNING_CAPABILITY.md`.
+
+
+---
+
+## Phase 6B-4 — iPad developer trust diagnosis (2026-11-12)
+
+**Read-only investigation. Historical cause: profile never trusted.**
+
+- `devicectl` reports developer mode enabled, USB paired, but **zero installed
+  apps**; the probe was uninstalled in 6B-3, so no Developer App entry is
+  expected now.
+- Retained profile matches explicit App ID, current cert, iPad UDID, get-task-
+  allow=true, valid 2026-11-12 to 2026-11-19.
+- Prior launch rejection was SBMainWorkspace Security/profile-trust, not a
+  provisioning/cert/device mismatch.
+- No MDM/supervision evidence; `allowEnterpriseAppTrust` not implicated.
+- Next step requires explicit approval to reinstall the same probe, launch from
+  Home Screen, trust in Settings; then re-check.
+- No reinstall/signing/device/camera/printer changes.
+- Report: `docs/technical/PHASE_6B_4_IPAD_DEVELOPER_TRUST_DIAGNOSIS.md`.
+
+
+---
+
+## Phase 6B-5 — Personal Team trust/first launch (2026-11-12)
+
+**PASS — build/sign/install/trust/launch confirmed.**
+
+- Rebuilt disposable explicit-ID probe with same bundle ID; reused existing
+  profile UUID and certificate (no new profile).
+- Installed on iPad; operator confirmed Developer App appeared and Trust
+  succeeded.
+- Launch succeeded; PID 814 verified running. Probe left installed for operator.
+- No Terabooth source/target, certificate, entitlement, licence, camera or
+  printer changes.
+- Wildcard/demo vendor-ID blocker remains separate.
+- Report: `docs/technical/PHASE_6B_5_PERSONAL_TEAM_TRUST_FIRST_LAUNCH.md`.
+
+
+---
+
+## Phase 6B-6 — Actual Terabooth iPad launch (2026-11-12)
+
+**PASS Release launch; PARTIAL UI smoke.**
+
+- Preflight confirmed Runner/Debug/Release, bundle `com.terabooth.teraboothIpad`,
+  no entitlements, Mock default, USE_NATIVE_CAMERA=false.
+- Debug build signed/installed but standalone launch blank: Flutter debug requires
+  Xcode/flutter tooling. Release build succeeded with the same bundle/team.
+- Xcode created explicit App ID/profile UUID 0a12cb09-dbbd-4c11-856d-3b44a94b80c3,
+  expiry 2026-11-19; no demo licence.
+- Release installed; existing trust accepted; operator confirmed launch and
+  running PID 837. Home and Settings PASS; Events opens; back NOT TESTED.
+- Operator created a local test event (not deleted).
+- No camera/Bridge/QR/print; no source/project/signing changes.
+- Report: `docs/technical/PHASE_6B_6_ACTUAL_TERABOOTH_IPAD_LAUNCH.md`.
+
+
+---
+
+## Phase 6C-1 — Cascable demo signing/install (2026-11-12)
+
+**BLOCKED — no wildcard provisioning profile locally.**
+
+- Demo target/licence/SDK verified (Runner-CascableDemo, Debug-CascableDemo,
+  se.cascable.CascableCoreiOSDemo, CascableCore 18.0.2, demo licence private).
+- Only two explicit Personal Team profiles exist; no `*` or `se.cascable.*`
+  wildcard profile. No demo build/install attempted.
+- Production target/Bundle ID untouched; no camera/printer operations.
+- Next: account owner Download Manual Profiles/check wildcard App ID; manual
+  signing only if a real wildcard profile exists.
+- Report: `docs/technical/PHASE_6C_1_CASCABLE_DEMO_SIGNING_AND_INSTALL.md`.

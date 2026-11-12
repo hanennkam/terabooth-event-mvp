@@ -38,6 +38,11 @@ class BoothController extends ChangeNotifier {
   PrintJob? job;
   bool saving = false;
 
+  Uint8List? liveViewFrame;
+  String? liveViewError;
+  StreamSubscription<Uint8List>? _liveViewSubscription;
+  bool _liveViewStarted = false;
+
   /// Slot currently being retaken (0-based), or null.
   int? retakingSlot;
 
@@ -761,6 +766,48 @@ class BoothController extends ChangeNotifier {
     await _runCaptureSession();
   }
 
+  Future<void> _startLiveViewIfAvailable() async {
+    if (camera is! CameraLiveViewSource) return;
+    final source = camera as CameraLiveViewSource;
+    _liveViewSubscription ??= source.liveViewFrames.listen(
+      (frame) {
+        liveViewFrame = frame;
+        if (!_disposed) notifyListeners();
+      },
+      onError: (Object e) {
+        liveViewError = e.toString();
+        if (!_disposed) notifyListeners();
+      },
+    );
+    try {
+      await source.startLiveView();
+      _liveViewStarted = true;
+      liveViewError = null;
+    } catch (e) {
+      // Live View is optional for capture; report it without failing the session.
+      liveViewError = e.toString();
+      _liveViewStarted = false;
+    }
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _stopLiveView() async {
+    final subscription = _liveViewSubscription;
+    _liveViewSubscription = null;
+    await subscription?.cancel();
+    final source = camera;
+    if (_liveViewStarted && source is CameraLiveViewSource) {
+      try {
+        await (source as CameraLiveViewSource).stopLiveView();
+      } catch (_) {
+        // Cleanup is best effort; the camera pipeline owns disconnect.
+      }
+    }
+    _liveViewStarted = false;
+    liveViewFrame = null;
+    liveViewError = null;
+  }
+
   Future<void> _runCaptureSession({bool resume = false}) async {
     try {
       if (!resume) {
@@ -770,6 +817,7 @@ class BoothController extends ChangeNotifier {
         await storage.recoverOrphans(eventId: eventId);
       }
       await cameraPipeline.connect();
+      await _startLiveViewIfAvailable();
       await _writeMetadata();
       for (var i = photos.length; i < sessionPhotoCount; i++) {
         if (_endRequested) throw const _SessionEnded();
@@ -850,6 +898,7 @@ class BoothController extends ChangeNotifier {
   }
 
   Future<void> _finishSession(String status) async {
+    await _stopLiveView();
     sessionStatus = status;
     try {
       await _writeMetadata(forceEnded: true);
@@ -1319,6 +1368,7 @@ class BoothController extends ChangeNotifier {
     gifLoading = false;
     gifError = null;
     crops.clear();
+    unawaited(_stopLiveView());
     cameraPipeline.resetCaptureState();
     notifyListeners();
   }
@@ -1326,6 +1376,8 @@ class BoothController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    unawaited(_stopLiveView());
+    unawaited(camera.dispose());
     cameraPipeline.removeListener(_cameraChanged);
     cameraPipeline.dispose();
     super.dispose();

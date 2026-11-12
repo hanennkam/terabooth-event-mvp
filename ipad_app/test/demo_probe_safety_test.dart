@@ -36,6 +36,7 @@ void main() {
     expect(app, isNot(contains('CascableCoreDemoProbe.shared.start(')));
     expect(app, isNot(contains('beginSearching')));
     expect(app, isNot(contains('camera.connect')));
+    expect(app, contains('CameraPlugin.licenseApplied = licenseApplied'));
 
     final prepareStart = source.indexOf('func prepare(');
     expect(prepareStart, greaterThanOrEqualTo(0));

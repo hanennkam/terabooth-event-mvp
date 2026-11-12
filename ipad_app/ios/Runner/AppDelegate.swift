@@ -14,6 +14,7 @@ import CascableCore
 #if CASCABLE_DEMO
     let licenseResult = CascableCoreLicenseVerification.apply(license: CascableCoreLicense.data)
     let licenseApplied = licenseResult == .success
+    CameraPlugin.licenseApplied = licenseApplied
     NSLog("CASCABLE_DEMO_LICENSE_RESULT=\(licenseResult.rawValue) configured=\(CascableCoreLicense.isConfigured)")
     CascableCoreDemoProbe.shared.prepare(licenseApplied: licenseApplied)
 #endif

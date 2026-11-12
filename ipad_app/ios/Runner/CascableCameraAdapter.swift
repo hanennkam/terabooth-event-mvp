@@ -69,8 +69,7 @@ final class CascableCameraAdapter: NSObject, FlutterStreamHandler, CameraDiscove
             stopLiveView()
             result(nil)
         case "dispose":
-            dispose()
-            result(nil)
+            dispose(result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -462,14 +461,23 @@ final class CascableCameraAdapter: NSObject, FlutterStreamHandler, CameraDiscove
 
     // MARK: - Helpers
 
-    private func dispose() {
+    private func dispose(_ result: @escaping FlutterResult) {
         stopLiveView()
         removeTransferHandler()
         failCapture(code: "CAMERA_DISCONNECTED", message: "camera adapter disposed")
         discovery.stopSearching()
         discovery.delegate = nil
-        camera = nil
         discovered.removeAll()
+        guard let camera else {
+            self.camera = nil
+            result(nil)
+            return
+        }
+        self.camera = nil
+        camera.disconnect({ [weak self] _ in
+            self?.eventSink = nil
+            result(nil)
+        }, callbackQueue: nil)
     }
 
     private func cameraId(_ camera: Camera) -> String {

@@ -39,6 +39,9 @@ class TestCamera implements CameraService {
   Future<void> disconnect() async {}
 
   @override
+  Future<void> dispose() async {}
+
+  @override
   Future<CapturedImage> capture({String? captureId}) async {
     captureIds.add(captureId);
     active++;
